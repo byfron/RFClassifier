@@ -1,14 +1,39 @@
+#include <opencv2/opencv.hpp>
+
+#define INF 1000000//std::numeric_limits<float>::max()
+
+class Feature;
 typedef int Label;
+typedef std::vector<Feature>::iterator FeatureIterator;
 
-struct Settings {
+class Image {
+public:
+	const float& operator()(int row, int col) {
+		return _image.at<float>(row, col);
+	}
 
-	int num_trees;
-	int num_thresholds_per_feature;
-	int num_offsets_per_pixel;
-	int max_tree_depth;
-	float max_offset;
+	cv::Mat _image;
+};
 
-}
+class ImagePool {
+public:
+
+	static Image & getImage(int id) {
+		return _image_vector[id];
+	}
+
+	static std::vector<Image> _image_vector;
+};
+
+
+class Settings {
+public:
+	static int num_trees;
+	static int num_thresholds_per_feature;
+	static int num_offsets_per_pixel;
+	static int max_tree_depth;
+	static float max_offset;
+};
 
 struct LearnerParameters {
 	bool is_unary;
@@ -17,12 +42,14 @@ struct LearnerParameters {
 };
 
 class Feature {
-
+public:
 	void evaluate(LearnerParameters & params);
 
 	bool operator< (const Feature& f) const {
 		return _value < f._value;
 	}
+
+	const float & getValue() { return _value; }
 
 private:
 	int _row;
@@ -40,13 +67,14 @@ struct DataSplit {
 		  FeatureIterator e) : data(d), start(s), end(e) {}
 
 	std::vector<Feature> & data;
-	FeatureIteator start;
+	FeatureIterator start;
 	FeatureIterator end;
-}
+};
 
-struct NodeConstrctor {
+struct NodeConstructor {
 
-	NodeConstructor(int id, FeatureIterator s,
+	NodeConstructor(int id,
+			FeatureIterator s,
 			FeatureIterator e) : node_id(id), start(s), end(e) {}
 	int node_id;
 	FeatureIterator start, end;
@@ -58,12 +86,13 @@ public:
 
 	Node(int depth) : _depth(depth) {};
 
-	void train(DataSplit &);
+	void train(DataSplit);
 
-	void sampleParameters(std::vector<LearnerParameters> & params);
-	float evaluateCostFunction(const DataSplit &, float);
+	float evaluateCostFunction(const DataSplit, float);
 
-	FeatureIterator getSplitIterator(const DataSplit &);
+	FeatureIterator getSplitIterator(DataSplit) const;
+
+	bool isLeaf() { return _is_leaf; }
 
 	int left_child;
 	int right_child;
@@ -74,14 +103,14 @@ private:
 	float _threshold;
 	int _depth;
 	bool _is_leaf;
-}
+};
 
 class RandomTree
 {
 
 public:
 
-	void train(std::vector<Feature>&, std::vector<Label>&);
+	void train(std::vector<Feature>&);
 
 private:
 
@@ -92,8 +121,8 @@ class RandomForest
 {
 
 public:
-	predict()
-	train()
+
+	void pushTree(RandomTree & tree) {};
 
 private:
 
