@@ -5,51 +5,73 @@ struct Settings {
 	int num_trees;
 	int num_thresholds_per_feature;
 	int num_offsets_per_pixel;
-	int max_three_depth;
+	int max_tree_depth;
 	float max_offset;
-	
+
 }
 
 struct LearnerParameters {
-	float _threshold;
-	float _offset_1;
-	float _offset_2;
+	bool is_unary;
+	float offset_1[2];
+	float offset_2[2];
 };
-	
+
 class Feature {
 
-	float evaluateFeature(LearnerParameters & params);
+	void evaluate(LearnerParameters & params);
 
+	bool operator< (const Feature& f) const {
+		return _value < f._value;
+	}
 
-	operator  <
-	
 private:
-	int row;
-	int column;
-	int label;
-	float value;
-	Image *depth_image;	
+	int _row;
+	int _col;
+	Label _label;
+	float _value;
+	int _image_id;
+};
+
+
+struct DataSplit {
+
+	DataSplit(std::vector<Feature> & d,
+		  FeatureIterator s,
+		  FeatureIterator e) : data(d), start(s), end(e) {}
+
+	std::vector<Feature> & data;
+	FeatureIteator start;
+	FeatureIterator end;
+}
+
+struct NodeConstrctor {
+
+	NodeConstructor(int id, FeatureIterator s,
+			FeatureIterator e) : node_id(id), start(s), end(e) {}
+	int node_id;
+	FeatureIterator start, end;
 };
 
 class Node
 {
 public:
 
-	void train(const std::vector<Feature> & data);
-	void sampleParameters(std::vector<LearnerParameters> & params);	
-	float evaluateCostFunction(const std::vector<Feature> &data,
-				   const std::vector<int> & left_partition,
-				   const std::vector<int> & right_partition);
-	void proposeSplit(const LearnerParameters & params,
-			  const std::vector<Feature> &data,
-			  std::vector<int> & left_partition,
-			  std::vector<int> & right_partition);
-	
+	Node(int depth) : _depth(depth) {};
+
+	void train(DataSplit &);
+
+	void sampleParameters(std::vector<LearnerParameters> & params);
+	float evaluateCostFunction(const DataSplit &, float);
+
+	FeatureIterator getSplitIterator(const DataSplit &);
+
+	int left_child;
+	int right_child;
+
 private:
-	
-	int _index_1;
-	int _index_2;
+
 	LearnerParameters _node_params;
+	float _threshold;
 	int _depth;
 	bool _is_leaf;
 }
@@ -76,5 +98,5 @@ public:
 private:
 
 	std::vector<RandomTree> _tree_ensemble;
-	
+
 };
