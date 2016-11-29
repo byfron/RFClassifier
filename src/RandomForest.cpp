@@ -8,12 +8,12 @@ namespace {
 	std::vector<LearnerParameters> sampleParameters() {
 
 	//Sample offsets from a uniform distribution
-
+		RandomGenerator::generateUniform();
 	}
-
 
 	std::vector<float> sampleThresholds() {
 
+		RandomGenerator::generateUniform();
 	}
 }
 
@@ -160,4 +160,10 @@ void RandomTree::train(std::vector<Feature> & data) {
 
 		depth++;
 	}
+}
+
+void RandomForest::train() {
+
+	
+	
 }
