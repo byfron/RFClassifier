@@ -4,7 +4,7 @@
 
 #define MAIN_DB_PATH "DB_PATH"
 
-typedef cv::Vec<float,3> Vec3;
+typedef cv::Vec<uchar,3> color;
 
 
 class RandomNumberGenerator {

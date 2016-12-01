@@ -27,8 +27,6 @@ void Feature::evaluate(LearnerParameters & params) {
 	}
 }
 
-
-
 void Node::train(DataSplit ds) {
 
 	// Check if we are finished (reached max depth)

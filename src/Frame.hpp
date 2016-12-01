@@ -14,7 +14,7 @@ public:
 
 	const float& operator()(int row, int col);
 
-	static std::vector<Vec3> color_map;
+	static std::vector<color> color_map;
 
 private:
 
@@ -28,8 +28,8 @@ public:
 	static void create() {
 
 		std::string main_db_path = getenv(MAIN_DB_PATH);
-		int num_images_per_seq = 100;
-		int num_max_sequences = 180;
+		int num_images_per_seq = 10;
+		int num_max_sequences = 1;
 		int num_camera = 1;
 		int size = 500;
 
