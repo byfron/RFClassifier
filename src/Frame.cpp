@@ -1,4 +1,6 @@
 #include "Frame.hpp"
+#include "RandomForest.hpp"
+#include "RandomGenerator.hpp"
 
 std::vector<Frame> FramePool::image_vector = std::vector<Frame>();
 
@@ -76,6 +78,83 @@ std::vector<color> color_map =  {
 
 		return im(ROI);
 	}
+
+	void sampleFromForeground(const Frame & frame, int & row, int & col) {
+
+		int sampled = 0;
+		cv::Size size = frame.getImageSize();
+
+		do {
+			//generate row
+			row = random_int(0, size.height);
+			col = random_int(0, size.width);
+			
+		} while (frame.getLabel(row, col) != (int)Labels::Background);	
+	}
+}
+
+Feature::Feature(int row, int col, int label, int image_id) :
+	_row(row), _col(col), _label(label), _image_id(image_id) {
+}
+
+void Feature::evaluate(LearnerParameters & params) {
+
+	Frame & im = FramePool::image_vector[_image_id];
+	float z = im(_row, _col);
+	_value = im(_row + params.offset_1[0]/z, _col + params.offset_1[1]/z);
+	if (!params.is_unary) {
+		_value -= im(_row + params.offset_2[0]/z, _col + params.offset_2[1]/z);
+	}
+}
+
+void FramePool::create() {
+
+	std::string main_db_path = getenv(MAIN_DB_PATH);
+	int num_images_per_seq = 10;
+	int num_max_sequences = 1;
+	int num_camera = 1;
+	int size = 500;
+
+	std::unique_ptr<char[]> buf( new char[ size ] );
+
+	for (int num_seq = 1; num_seq <= num_max_sequences; num_seq++) {
+		for (int num_im = 1; num_im < num_images_per_seq; num_im++) {
+			std::snprintf( buf.get(), size,
+				       "%s/train/%d/images/depthRender/Cam%d/mayaProject.%06d.png",
+				       main_db_path.c_str(),
+				       num_seq, num_camera, num_im);
+
+			std::string path_depth(buf.get());
+
+			std::snprintf( buf.get(), size,
+				       "%s/train/%d/images/groundtruth/Cam%d/mayaProject.%06d.png",
+				       main_db_path.c_str(),
+				       num_seq, num_camera, num_im);
+
+			std::string path_gt(buf.get());
+				
+			FramePool::image_vector.push_back(Frame(path_depth, path_gt));
+		}
+	}
+}
+
+std::vector<Feature> FramePool::computeFeatures() {
+
+	int row, col;
+	std::vector<Feature> features;
+	
+	// For each image sample uniformly pixels in the foreground
+	for (int im_id = 0; im_id < FramePool::image_vector.size(); im_id++) {
+
+		for (int i = 0; i < Settings::num_pixels_per_image; i++) {
+
+			Frame & image = FramePool::image_vector[im_id];
+			FrameUtils::sampleFromForeground(image, row, col);
+			features.push_back(Feature(row, col, image.getLabel(row, col), im_id));
+		}
+	}
+
+	return features;
 }
 
 Frame::Frame(std::string depth_path,

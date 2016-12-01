@@ -4,6 +4,33 @@
 #include <memory>
 #include <stdlib.h>
 
+class LearnerParameters;
+
+enum class Labels {
+	Background,
+	LeftShoulder
+};
+
+class Feature {
+public:
+	Feature(int row, int col, int label, int im_id);
+	void evaluate(LearnerParameters & params);
+
+	bool operator< (const Feature& f) const {
+		return _value < f._value;
+	}
+
+	const float & getValue() { return _value; }
+
+private:
+	int _row;
+	int _col;
+	Label _label;
+	float _value;
+	int _image_id;
+};
+
+
 class Frame {
 public:
 
@@ -12,7 +39,15 @@ public:
 	void load(std::string depth_path,
 		  std::string gt_path);
 
+	Label getLabel(int row, int col) const {
+		return _labels.at<uchar>(row, col);
+	}		
+	
 	const float& operator()(int row, int col);
+
+	cv::Size getImageSize() const {
+		return _depth.size();
+	}
 
 private:
 
@@ -23,40 +58,10 @@ private:
 class FramePool {
 public:
 
-	static void create() {
-
-		std::string main_db_path = getenv(MAIN_DB_PATH);
-		int num_images_per_seq = 10;
-		int num_max_sequences = 1;
-		int num_camera = 1;
-		int size = 500;
-
-		std::unique_ptr<char[]> buf( new char[ size ] );
-
-		for (int num_seq = 1; num_seq <= num_max_sequences; num_seq++) {
-			for (int num_im = 1; num_im < num_images_per_seq; num_im++) {
-				std::snprintf( buf.get(), size,
-					       "%s/train/%d/images/depthRender/Cam%d/mayaProject.%06d.png",
-					       main_db_path.c_str(),
-					       num_seq, num_camera, num_im);
-
-				std::string path_depth(buf.get());
-
-				std::snprintf( buf.get(), size,
-					       "%s/train/%d/images/groundtruth/Cam%d/mayaProject.%06d.png",
-					       main_db_path.c_str(),
-					       num_seq, num_camera, num_im);
-
-				std::string path_gt(buf.get());
-				
-				FramePool::image_vector.push_back(Frame(path_depth, path_gt));
-			}
-		}
-
-	}
-
+	static std::vector<Feature> computeFeatures();	
+	static void create();
 	static std::vector<Frame> image_vector;
-
+	
 private:
 
 };

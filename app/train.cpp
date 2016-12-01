@@ -6,9 +6,13 @@ int main(int argc, char **argv) {
 	// Load training
 	FramePool::create();
 
+	std::vector<Feature> data = FramePool::computeFeatures();
+
+	std::cout << "DONE" << std::endl;
+	
 	// Train forest
-	// RandomForest random_forest;
-	// random_forest.train();
+	RandomForest random_forest;
+	random_forest.train(data);
 
 	// Check result on test
 

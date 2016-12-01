@@ -7,8 +7,6 @@
 
 #define INF 1000000//std::numeric_limits<float>::max()
 
-class Feature;
-typedef int Label;
 typedef std::vector<Feature>::iterator FeatureIterator;
 
 struct LearnerParameters {
@@ -16,25 +14,6 @@ struct LearnerParameters {
 	float offset_1[2];
 	float offset_2[2];
 };
-
-class Feature {
-public:
-	void evaluate(LearnerParameters & params);
-
-	bool operator< (const Feature& f) const {
-		return _value < f._value;
-	}
-
-	const float & getValue() { return _value; }
-
-private:
-	int _row;
-	int _col;
-	Label _label;
-	float _value;
-	int _image_id;
-};
-
 
 struct DataSplit {
 
@@ -98,7 +77,7 @@ class RandomForest
 
 public:
 
-	void train();
+	void train(std::vector<Feature>&);
 
 private:
 

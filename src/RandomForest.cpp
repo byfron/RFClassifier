@@ -1,29 +1,23 @@
+#include "common.hpp"
 #include "RandomForest.hpp"
+#include "RandomGenerator.hpp"
 #include <vector>
 #include <queue>
 #include <algorithm>
+
+int Settings::max_tree_depth = 20;
+int Settings::num_pixels_per_image = 1000;
 
 namespace {
 
 	std::vector<LearnerParameters> sampleParameters() {
 
 	//Sample offsets from a uniform distribution
-		RandomGenerator::generateUniform();
+		random_real(0.0,1.0);
 	}
 
 	std::vector<float> sampleThresholds() {
 
-		RandomGenerator::generateUniform();
-	}
-}
-
-void Feature::evaluate(LearnerParameters & params) {
-
-	Frame & im = FramePool::image_vector[_image_id];
-	float z = im(_row, _col);
-	_value = im(_row + params.offset_1[0]/z, _col + params.offset_1[1]/z);
-	if (!params.is_unary) {
-		_value -= im(_row + params.offset_2[0]/z, _col + params.offset_2[1]/z);
 	}
 }
 
@@ -102,7 +96,7 @@ void RandomTree::train(std::vector<Feature> & data) {
 	_nodes.clear();
 	int depth = 0;
 	std::queue<NodeConstructor> queue;
-
+	
 	// Train root node
 	Node root_node(depth);
 	DataSplit root_ds(data, data.begin(), data.end());
@@ -162,8 +156,14 @@ void RandomTree::train(std::vector<Feature> & data) {
 	}
 }
 
-void RandomForest::train() {
+void RandomForest::train(std::vector<Feature> & data) {
 
+
+	//Pre-sample Raw Features for each image
+
+	
+	
+	
 //	RandomTree tree;
 //	tree.train();
 
