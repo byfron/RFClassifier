@@ -164,6 +164,7 @@ void RandomTree::train(std::vector<Feature> & data) {
 
 void RandomForest::train() {
 
-
+//	RandomTree tree;
+//	tree.train();
 
 }

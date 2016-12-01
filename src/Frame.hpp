@@ -14,8 +14,6 @@ public:
 
 	const float& operator()(int row, int col);
 
-	static std::vector<color> color_map;
-
 private:
 
 	cv::Mat _depth;
@@ -50,7 +48,7 @@ public:
 					       num_seq, num_camera, num_im);
 
 				std::string path_gt(buf.get());
-
+				
 				FramePool::image_vector.push_back(Frame(path_depth, path_gt));
 			}
 		}

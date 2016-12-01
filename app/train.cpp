@@ -12,6 +12,5 @@ int main(int argc, char **argv) {
 
 	// Check result on test
 
-
 	return 0;
 }
