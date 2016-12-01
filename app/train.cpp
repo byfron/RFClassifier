@@ -1,13 +1,14 @@
 #include <RandomForest.hpp>
+#include <Frame.hpp>
 
 int main(int argc, char **argv) {
 
 	// Load training
-	ImagePool::create();
+	FramePool::create();
 
 	// Train forest
-	RandomForest random_forest;
-	random_forest.train();
+	// RandomForest random_forest;
+	// random_forest.train();
 
 	// Check result on test
 

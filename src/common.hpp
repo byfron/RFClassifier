@@ -2,7 +2,10 @@
 #include <random>
 #include <opencv2/opencv.hpp>
 
+#define MAIN_DB_PATH "DB_PATH"
+
 typedef cv::Vec<float,3> Vec3;
+
 
 class RandomNumberGenerator {
 
@@ -33,7 +36,6 @@ public:
 
 class Settings {
 public:
-	static std::string data_path;
 	static int num_trees;
 	static int num_images_per_tree;
 	static int num_thresholds_per_feature;

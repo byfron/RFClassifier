@@ -19,7 +19,7 @@ namespace {
 
 void Feature::evaluate(LearnerParameters & params) {
 
-	Frame & im = FramePool::getFrame(_image_id);
+	Frame & im = FramePool::image_vector[_image_id];
 	float z = im(_row, _col);
 	_value = im(_row + params.offset_1[0]/z, _col + params.offset_1[1]/z);
 	if (!params.is_unary) {
