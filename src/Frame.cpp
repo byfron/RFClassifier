@@ -101,9 +101,20 @@ void Feature::evaluate(LearnerParameters & params) {
 
 	Frame & im = FramePool::image_vector[_image_id];
 	float z = im(_row, _col);
-	_value = im(_row + params.offset_1[0]/z, _col + params.offset_1[1]/z);
+
+	//If offset is outside the image project it back
+	int row = std::max(std::min(0, _row + int(params.offset_1[0]/z)),
+			   im.getImageSize().height);
+	int col = std::max(std::min(0, _col + int(params.offset_1[1]/z)),
+			   im.getImageSize().width);
+	
+	_value = im(row, col);
 	if (!params.is_unary) {
-		_value -= im(_row + params.offset_2[0]/z, _col + params.offset_2[1]/z);
+		row = std::max(std::min(0, _row + int(params.offset_2[0]/z)),
+			       im.getImageSize().height);
+		col = std::max(std::min(0, _col + int(params.offset_2[1]/z)),
+					im.getImageSize().width);
+		_value -= im(row, col);
 	}
 }
 

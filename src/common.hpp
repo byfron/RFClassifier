@@ -15,5 +15,7 @@ public:
 	static int num_offsets_per_pixel;
 	static int num_pixels_per_image;
 	static int max_tree_depth;
-	static float max_offset;
+	static float maximum_depth_difference;
+	static int offset_box_size;
+	static int num_labels;
 };

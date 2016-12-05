@@ -8,8 +8,6 @@ int main(int argc, char **argv) {
 
 	std::vector<Feature> data = FramePool::computeFeatures();
 
-	std::cout << "DONE" << std::endl;
-	
 	// Train forest
 	RandomForest random_forest;
 	random_forest.train(data);

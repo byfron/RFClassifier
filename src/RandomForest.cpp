@@ -7,17 +7,63 @@
 
 int Settings::max_tree_depth = 20;
 int Settings::num_pixels_per_image = 1000;
-
+int Settings::num_thresholds_per_feature = 10;
+int Settings::num_offsets_per_pixel = 2000;
+float Settings::maximum_depth_difference = 2.0; //defines range thresholds
+int Settings::offset_box_size = 150;
+int Settings::num_labels = 32;
+	
 namespace {
 
-	std::vector<LearnerParameters> sampleParameters() {
+	FeatureIterator computeSplitIterator(DataSplit ds, float threshold) {
 
-	//Sample offsets from a uniform distribution
-		random_real(0.0,1.0);
+		FeatureIterator it;
+		for (it = ds.start; it != ds.end; it++) {
+			if (it->getValue() <= threshold)
+				break;
+		}
+
+		return it;
+	}
+	
+	void sampleOffset(float * offset) {
+
+		offset[0] = Settings::offset_box_size*2*random_real(0.0,1.0) -
+				Settings::offset_box_size/2;
+		offset[1] = Settings::offset_box_size*2*random_real(0.0,1.0) -
+				Settings::offset_box_size/2;
+	}
+	
+	std::vector<LearnerParameters> sampleParameters() {
+		
+		std::vector<LearnerParameters> param_vec;
+		
+		for (int i = 0; i < Settings::num_offsets_per_pixel; i++) {
+
+			LearnerParameters param;
+			
+			//Sample offsets from a uniform distribution
+			sampleOffset(param.offset_1);
+			param.is_unary = random_real(0.0,1.0) > 0.5;
+			if (param.is_unary)
+				sampleOffset(param.offset_2);
+						
+			param_vec.push_back(param);
+		}
+
+		return param_vec;
 	}
 
 	std::vector<float> sampleThresholds() {
 
+		std::vector<float> thresh_vec;
+		
+		for (int i = 0; i < Settings::num_thresholds_per_feature; i++) {
+			thresh_vec.push_back(Settings::maximum_depth_difference*2*random_real(0.0,1.0)
+					     - Settings::maximum_depth_difference);
+		}
+
+		return thresh_vec;
 	}
 }
 
@@ -31,6 +77,7 @@ void Node::train(DataSplit ds) {
 		return;
 	}
 
+	std::cout << "Sampling learners..." << std::endl;
 	// Sample a new set of parameters
 	std::vector<LearnerParameters> sampled_learners =
 		sampleParameters();
@@ -39,6 +86,8 @@ void Node::train(DataSplit ds) {
 	float best_threshold;
 	LearnerParameters best_learner;
 
+	std::cout << "Evaluating features..." << std::endl;
+	
 	// Evaluate all features with each set of parameters
 	for (auto learner : sampled_learners) {
 		for (FeatureIterator it = ds.start; it != ds.end; it++) {
@@ -65,6 +114,9 @@ void Node::train(DataSplit ds) {
 	_node_params = best_learner;
 	_threshold = best_threshold;
 
+
+	std::cout << "Finished training node. Entropy:" << std::endl;
+	
 	// sort data acoording to the best learner,
 	// so that we know where to split in the next children nodes
 	for (FeatureIterator it = ds.start; it != ds.end; it++) {
@@ -73,22 +125,24 @@ void Node::train(DataSplit ds) {
 	std::sort(ds.start, ds.end);
 }
 
-
 FeatureIterator Node::getSplitIterator(DataSplit ds) const {
-
-	FeatureIterator it;
-	for (it = ds.start; it != ds.end; it++) {
-		if (it->getValue() <= _threshold)
-			break;
-	}
-
-	return it;
+	return computeSplitIterator(ds, _threshold);
 }
 
 float Node::evaluateCostFunction(const DataSplit ds,
-				 float theshold) {
+				 float threshold) const {
 
-	//shannon entropy
+	//divide datasplit with threshold
+	FeatureIterator split_it = computeSplitIterator(ds, threshold);
+	DataSplit l_split = DataSplit(ds.data, ds.start, split_it);
+	DataSplit r_split = DataSplit(ds.data, split_it, ds.end);
+	LabelHistogram hist_left(l_split);
+	LabelHistogram hist_right(r_split);
+	float entr_left = hist_left.computeEntropy();
+	float entr_right = hist_left.computeEntropy();
+
+	return (l_split.getSize()/ds.getSize()) * entr_left +
+		(r_split.getSize()/ds.getSize()) * entr_right;
 }
 
 void RandomTree::train(std::vector<Feature> & data) {
@@ -153,18 +207,14 @@ void RandomTree::train(std::vector<Feature> & data) {
 		}
 
 		depth++;
+		std::cout << _nodes.size() << "nodes with depth :" << depth << std::endl;
 	}
 }
 
 void RandomForest::train(std::vector<Feature> & data) {
 
 
-	//Pre-sample Raw Features for each image
-
-	
-	
-	
-//	RandomTree tree;
-//	tree.train();
+	RandomTree tree;
+	tree.train(data);
 
 }

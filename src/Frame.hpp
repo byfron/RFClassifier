@@ -21,7 +21,7 @@ public:
 	}
 
 	const float & getValue() { return _value; }
-
+	const int & getLabel() { return _label; }
 private:
 	int _row;
 	int _col;
@@ -29,7 +29,6 @@ private:
 	float _value;
 	int _image_id;
 };
-
 
 class Frame {
 public:

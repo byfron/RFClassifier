@@ -21,9 +21,33 @@ struct DataSplit {
 		  FeatureIterator s,
 		  FeatureIterator e) : data(d), start(s), end(e) {}
 
+	int getSize() const {
+		return std::distance(start, end);
+	}
+	
 	std::vector<Feature> & data;
 	FeatureIterator start;
 	FeatureIterator end;
+};
+
+class LabelHistogram {
+public:
+	LabelHistogram(DataSplit & ds) {
+		_hist = std::vector<int>(Settings::num_labels, 0);
+		for (FeatureIterator it = ds.start; it != ds.end; it++) {
+			_hist[it->getLabel()]++;			
+		}	       
+	}
+
+	float computeEntropy() const {
+		float sum = 0;
+		for (int i = 0; i < _hist.size(); i++)
+			sum += _hist[i]*log(_hist[i]);
+		return -sum;
+	}
+	
+private:
+	std::vector<int> _hist;
 };
 
 struct NodeConstructor {
@@ -43,8 +67,9 @@ public:
 
 	void train(DataSplit);
 
-	float evaluateCostFunction(const DataSplit, float);
+	float evaluateCostFunction(const DataSplit, float) const;
 
+	FeatureIterator getSplitIterator(DataSplit, float threshold) const;
 	FeatureIterator getSplitIterator(DataSplit) const;
 
 	bool isLeaf() { return _is_leaf; }
