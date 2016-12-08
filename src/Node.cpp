@@ -139,6 +139,11 @@ void Node::train(DataSplit ds) {
 	std::cout << "Best split:" << (split_it - ds.start) << "/" <<
 		(ds.end - split_it) << std::endl;
 
+	//if the best split leaves all nodes here, mark as leaf
+	if (split_it == ds.start ||
+	    split_it == ds.end)
+		_is_leaf = true;
+
 }
 
 FeatureIterator Node::getSplitIterator(DataSplit ds) const {
