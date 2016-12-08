@@ -5,7 +5,7 @@
 std::vector<Frame> FramePool::image_vector = std::vector<Frame>();
 
 namespace FrameUtils{
-	
+
 std::vector<color> color_map =  {
 	 {255,106,  0},
 	 {0, 0, 0},
@@ -54,22 +54,22 @@ std::vector<color> color_map =  {
 	 {127, 116, 63}};
 
 	cv::Mat cropForeground(cv::Mat im, cv::Mat mask) {
-		
+
 		cv::Mat fw_locations;
 		const int WIDTH = 500;
-		const int HEIGHT = 500;       
+		const int HEIGHT = 500;
 		int max_row = 0;
 		int max_col = 0;
 		int min_row = im.rows;
 		int min_col = im.cols;
-	
+
 		cv::findNonZero(mask, fw_locations);
 		for (int i = 0; i < fw_locations.total(); i++ ) {
-			cv::Point p = fw_locations.at<cv::Point>(i); 
+			cv::Point p = fw_locations.at<cv::Point>(i);
 			if (min_col > p.x) min_col = p.x;
-			if (max_col < p.x) max_col = p.x; 
+			if (max_col < p.x) max_col = p.x;
 			if (min_row > p.y) min_row = p.y;
-			if (max_row < p.y) max_row = p.y; 
+			if (max_row < p.y) max_row = p.y;
 		}
 
 		cv::Rect ROI = cv::Rect(min_col, min_row,
@@ -109,7 +109,7 @@ void Feature::evaluate(LearnerParameters & params) {
 			   im.getImageSize().height);
 	int col = std::min(std::max(0, _col + int(params.offset_1[1]/z)),
 			   im.getImageSize().width);
-	
+
 	_value = im(row, col);
 
 	if (!params.is_unary) {
@@ -147,7 +147,7 @@ void FramePool::create() {
 				       num_seq, num_camera, num_im);
 
 			std::string path_gt(buf.get());
-				
+
 			FramePool::image_vector.push_back(Frame(path_depth, path_gt));
 		}
 	}
@@ -159,12 +159,12 @@ std::vector<Feature> FramePool::computeFeatures() {
 	std::vector<Feature> features;
 
 	// For each image sample uniformly pixels in the foreground
-	for (int im_id = 0; im_id < FramePool::image_vector.size(); im_id++) {	       
-		
+	for (int im_id = 0; im_id < FramePool::image_vector.size(); im_id++) {
+
 		for (int i = 0; i < Settings::num_pixels_per_image; i++) {
 
 			Frame & image = FramePool::image_vector[im_id];
-			
+
 			FrameUtils::sampleFromForeground(image, row, col);
 			features.push_back(Feature(row, col, image.getLabel(row, col), im_id));
 		}
@@ -179,8 +179,8 @@ Frame::Frame(std::string depth_path,
 }
 
 void Frame::load(std::string depth_path,
-		 std::string gt_path) {	
-	
+		 std::string gt_path) {
+
 	cv::Mat gt_image = cv::imread(gt_path, -1);
 	cv::Mat label_image = cv::Mat(gt_image.size(), CV_8UC1);
 	label_image.setTo(0);
@@ -199,7 +199,9 @@ void Frame::load(std::string depth_path,
 			rgba[3];
 
 		std::vector<cv::Point2i> locations;
-		cv::findNonZero(Labels, locations);
+		int count = countNonZero(Labels);
+		if (count > 0)
+			cv::findNonZero(Labels, locations);
 
 		for (auto p : locations) {
 			label_image.at<uchar>(p) = label;
@@ -211,12 +213,13 @@ void Frame::load(std::string depth_path,
 		cv::imread(depth_path, CV_LOAD_IMAGE_GRAYSCALE), rgba[3]);
 
 
+
 	// Transform to centimeters
 	depth.convertTo(_depth, CV_32FC1);
 	_depth = (_depth/255. * (800-50) + 50)*1.03;
 
 	// TODO:Set background to maximum value
-	
+
 	_labels = FrameUtils::cropForeground(label_image, rgba[3]);
 }
 
