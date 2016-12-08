@@ -6,6 +6,7 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <cereal/archives/binary.hpp>
+#include <cereal/types/vector.hpp>
 
 class RandomTree
 {
@@ -17,12 +18,11 @@ public:
 	template<class Archive>
 	void serialize(Archive & archive)
 	{
-		archive(a);
+		archive(_nodes);
 	}
 
 private:
 
-	int a;
 	std::vector<Node> _nodes;
 };
 

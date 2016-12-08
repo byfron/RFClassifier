@@ -66,6 +66,8 @@ LabelHistogram::LabelHistogram(DataSplit & ds) {
 
 void Node::train(DataSplit ds) {
 
+	assert(ds.getSize() > 0);
+
 	struct timespec start, finish;
 	clock_gettime(CLOCK_MONOTONIC, &start);
 
@@ -138,8 +140,10 @@ void Node::train(DataSplit ds) {
 
 	//if the best split leaves all nodes here, mark as leaf
 	if (split_it == ds.start ||
-	    split_it == ds.end)
+	    split_it == ds.end) {
+		std::cout << "Is leaf!!!" << std::endl;
 		_is_leaf = true;
+	}
 
 }
 
@@ -159,9 +163,6 @@ float Node::evaluateCostFunction(const DataSplit ds,
 	LabelHistogram hist_right(r_split);
 	float entr_left = hist_left.computeEntropy();
 	float entr_right = hist_right.computeEntropy();
-
-	assert(ds.getSize() > 0);
-
 	float cost = (float(l_split.getSize())/ds.getSize()) * entr_left +
 		(float(r_split.getSize())/ds.getSize()) * entr_right;
 

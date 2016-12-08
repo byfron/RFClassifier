@@ -99,14 +99,14 @@ public:
 	bool isLeaf() { return _is_leaf; }
 
 	template <class Archive>
-	void serialize( Archive & ar )
+	void serialize( Archive & archive )
 	{
-		ar(left_child,
-		   right_child,
-		   _node_params,
-		   _threshold,
-		   _depth,
-		   _is_leaf);
+		archive(left_child,
+			right_child,
+			_node_params,
+			_threshold,
+			_depth,
+			_is_leaf);
 	}
 
 	int left_child;
