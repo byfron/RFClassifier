@@ -68,6 +68,9 @@ LabelHistogram::LabelHistogram(DataSplit & ds) {
 
 void Node::train(DataSplit ds) {
 
+	struct timespec start, finish;
+	clock_gettime(CLOCK_MONOTONIC, &start);
+
 	// Check if we are finished (reached max depth)
 	if (_depth == Settings::max_tree_depth) {
 		_is_leaf = true;
@@ -125,15 +128,17 @@ void Node::train(DataSplit ds) {
 	}
 	std::sort(ds.start, ds.end);
 
+	clock_gettime(CLOCK_MONOTONIC, &finish);
+	double elapsed;
+	elapsed = (finish.tv_sec - start.tv_sec);
+	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
-	std::cout << "Finished training node. Entropy:" <<
+	std::cout << "Finished training node in " << elapsed << " seconds. Entropy:" <<
 		evaluateCostFunction(ds, best_threshold) << std::endl;
 	FeatureIterator split_it = computeSplitIterator(ds, best_threshold);
 	std::cout << "Best split:" << (split_it - ds.start) << "/" <<
 		(ds.end - split_it) << std::endl;
 
-	getchar();
-	
 }
 
 FeatureIterator Node::getSplitIterator(DataSplit ds) const {
