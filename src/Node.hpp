@@ -2,6 +2,7 @@
 #include "common.hpp"
 #include "Frame.hpp"
 #include "RandomGenerator.hpp"
+#include <cereal/archives/binary.hpp>
 
 typedef std::vector<Feature>::iterator FeatureIterator;
 
@@ -9,6 +10,14 @@ struct LearnerParameters {
 	bool is_unary;
 	float offset_1[2];
 	float offset_2[2];
+
+	template <class Archive>
+	void serialize( Archive & ar )
+	{
+		ar(is_unary,
+		   cereal::binary_data(offset_1, sizeof(float)*2),
+		   cereal::binary_data(offset_2, sizeof(float)*2));
+	}
 };
 
 struct DataSplit {
@@ -88,6 +97,17 @@ public:
 	FeatureIterator getSplitIterator(DataSplit) const;
 
 	bool isLeaf() { return _is_leaf; }
+
+	template <class Archive>
+	void serialize( Archive & ar )
+	{
+		ar(left_child,
+		   right_child,
+		   _node_params,
+		   _threshold,
+		   _depth,
+		   _is_leaf);
+	}
 
 	int left_child;
 	int right_child;

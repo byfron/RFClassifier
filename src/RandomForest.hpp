@@ -5,6 +5,7 @@
 #include "Node.hpp"
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include <cereal/archives/binary.hpp>
 
 class RandomTree
 {
@@ -12,6 +13,12 @@ class RandomTree
 public:
 
 	void train(std::vector<Feature>&);
+
+	template<class Archive>
+	void serialize(Archive & archive)
+	{
+		archive(_nodes);
+	}
 
 private:
 
