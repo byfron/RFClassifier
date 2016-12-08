@@ -117,9 +117,10 @@ void Feature::evaluate(LearnerParameters & params) {
 			       im.getImageSize().height);
 		col = std::max(std::min(0, _col + int(params.offset_2[1]/z)),
 					im.getImageSize().width);
-		_value -= im(row, col);
+		z = im(row, col);
 	}
 
+	_value -= z;
 }
 
 void FramePool::create() {
