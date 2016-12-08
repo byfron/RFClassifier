@@ -63,7 +63,7 @@ void RandomTree::train(std::vector<Feature> & data) {
 
 		if (!right_node.isLeaf()) {
 			queue.push(
-				NodeConstructor(left_id,
+				NodeConstructor(right_id,
 						split_it,
 						end));
 		}
