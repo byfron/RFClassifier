@@ -10,6 +10,7 @@ namespace {
 				break;
 		}
 
+		return it;
 		return it+1;
 	}
 	
