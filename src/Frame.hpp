@@ -21,7 +21,8 @@ public:
 	}
 
 	const float & getValue() { return _value; }
-	const int & getLabel() { return _label; }
+	const Label & getLabel() { return _label; }
+	
 private:
 	int _row;
 	int _col;
@@ -38,9 +39,13 @@ public:
 	void load(std::string depth_path,
 		  std::string gt_path);
 
-	Label getLabel(int row, int col) const {
-		return _labels.at<uchar>(row, col);
+	Label getLabel(int row, int col) const {		
+		return (Label)_labels.at<uchar>(cv::Point2i(row, col));
 	}		
+
+	const cv::Mat & getLabelImage() const {
+		return _labels;
+	}
 	
 	const float& operator()(int row, int col);
 

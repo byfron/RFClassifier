@@ -3,9 +3,10 @@
 #include <random>
 
 #define MAIN_DB_PATH "DB_PATH"
+#define INF 1000000//std::numeric_limits<float>::max()
 
 typedef cv::Vec<uchar,3> color;
-typedef int Label;
+typedef short Label;
 
 class Settings {
 public:

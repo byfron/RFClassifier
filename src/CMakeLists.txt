@@ -3,8 +3,17 @@ add_library(Frame
   Frame.cpp
   )
 
+add_library(Settings
+  common.hpp
+  Settings.cpp
+  )
+
 target_link_libraries(Frame
   ${OpenCV_LIBS})
+
+add_library(Node
+  Node.hpp
+  Node.cpp)
 
 add_library(RandomGenerator
   RandomGenerator.hpp
@@ -16,5 +25,7 @@ add_library(RandomForest
 
 target_link_libraries(RandomForest
   Frame
+  Node
+  Settings
   RandomGenerator
   ${OpenCV_LIBS})
