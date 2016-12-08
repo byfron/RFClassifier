@@ -6,6 +6,37 @@
 #include <algorithm>
 #include <fstream>
 
+
+Label RandomTree::predict(Feature & feature) {
+
+	size_t node_idx = 0;
+
+	for(;;) {
+		Node & node = _nodes[node_idx];
+
+		if (node.isLeaf()) {
+			return node.getLabel();
+		}
+		else {
+			if (node.fallsToLeftChild(feature)) {
+				node_idx = node.left_child;
+			}
+			else {
+				node_idx = node.right_child;
+			}
+		}
+	}
+}
+
+std::vector<Label> RandomTree::predict(std::vector<Feature> & data) {
+
+	std::vector<Label> labels;
+	for (auto feature : data)
+		labels.push_back(predict(feature));
+
+	return labels;
+}
+
 void RandomTree::train(std::vector<Feature> & data) {
 
 	_nodes.clear();
@@ -29,7 +60,7 @@ void RandomTree::train(std::vector<Feature> & data) {
 
 	while(queue.size() > 0) {
 
-		int node_id = queue.front().node_id;
+		size_t node_id = queue.front().node_id;
 		FeatureIterator start = queue.front().start;
 		FeatureIterator end = queue.front().end;
 		queue.pop();
@@ -40,13 +71,13 @@ void RandomTree::train(std::vector<Feature> & data) {
 		// Train left child
 		Node left_node(depth);
 		left_node.train(DataSplit(data, start, split_it));
-		int left_id = _nodes.size();
+		size_t left_id = _nodes.size();
 		_nodes.push_back(left_node);
 
 		// Train right child
 		Node right_node(depth);
 		right_node.train(DataSplit(data, split_it, end));
-		int right_id = _nodes.size();
+		size_t right_id = _nodes.size();
 		_nodes.push_back(right_node);
 
 		// Assign child indices to parent

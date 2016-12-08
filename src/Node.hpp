@@ -57,6 +57,19 @@ public:
 				_hist[i]/=sum;
 	}
 
+	Label getMostLikelyLabel() {
+		Label best_label;
+		float max_prob = 0.0;
+		for (int i = 0; i < _hist.size(); i++) {
+			if (_hist[i] > max_prob) {
+				max_prob = _hist[i];
+				best_label = (Label)i;
+			}
+		}
+
+		return best_label;
+	}
+
 	float computeEntropy() const {
 
 		float sum = 0;
@@ -96,7 +109,9 @@ public:
 	FeatureIterator getSplitIterator(DataSplit, float threshold) const;
 	FeatureIterator getSplitIterator(DataSplit) const;
 
-	bool isLeaf() { return _is_leaf; }
+	bool fallsToLeftChild(Feature & feat) const;
+	bool isLeaf() const { return _is_leaf; }
+	Label getLabel() const { return _label; }
 
 	template <class Archive>
 	void serialize( Archive & archive )
@@ -109,8 +124,8 @@ public:
 			_is_leaf);
 	}
 
-	int left_child;
-	int right_child;
+	size_t left_child;
+	size_t right_child;
 
 private:
 
@@ -118,4 +133,5 @@ private:
 	float _threshold;
 	int _depth;
 	bool _is_leaf;
+	Label _label;
 };

@@ -14,7 +14,7 @@ enum class Labels {
 class Feature {
 public:
 	Feature(int row, int col, int label, int im_id);
-	void evaluate(LearnerParameters & params);
+	void evaluate(const LearnerParameters & params);
 
 	bool operator< (const Feature& f) const {
 		return _value < f._value;
@@ -22,7 +22,7 @@ public:
 
 	const float & getValue() { return _value; }
 	const Label & getLabel() { return _label; }
-	
+
 private:
 	int _row;
 	int _col;
@@ -39,14 +39,14 @@ public:
 	void load(std::string depth_path,
 		  std::string gt_path);
 
-	Label getLabel(int row, int col) const {		
+	Label getLabel(int row, int col) const {
 		return (Label)_labels.at<uchar>(cv::Point2i(row, col));
-	}		
+	}
 
 	const cv::Mat & getLabelImage() const {
 		return _labels;
 	}
-	
+
 	const float& operator()(int row, int col);
 
 	cv::Size getImageSize() const {
@@ -62,10 +62,10 @@ private:
 class FramePool {
 public:
 
-	static std::vector<Feature> computeFeatures();	
+	static std::vector<Feature> computeFeatures();
 	static void create();
 	static std::vector<Frame> image_vector;
-	
+
 private:
 
 };

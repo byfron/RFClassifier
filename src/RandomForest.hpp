@@ -13,6 +13,8 @@ class RandomTree
 
 public:
 
+	std::vector<Label> predict(std::vector<Feature>&);
+	Label predict(Feature &);
 	void train(std::vector<Feature>&);
 
 	template<class Archive>

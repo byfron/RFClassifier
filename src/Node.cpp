@@ -68,6 +68,8 @@ void Node::train(DataSplit ds) {
 
 	assert(ds.getSize() > 0);
 
+	std::cout << ">> Training node with " << ds.end - ds.start << " features." << std::endl;
+
 	struct timespec start, finish;
 	clock_gettime(CLOCK_MONOTONIC, &start);
 
@@ -79,7 +81,6 @@ void Node::train(DataSplit ds) {
 		return;
 	}
 
-	std::cout << "Sampling learners..." << std::endl;
 	// Sample a new set of parameters
 	std::vector<LearnerParameters> sampled_learners =
 		sampleParameters();
@@ -87,8 +88,6 @@ void Node::train(DataSplit ds) {
 	float best_cost = INF;
 	float best_threshold;
 	LearnerParameters best_learner;
-
-	std::cout << "Evaluating features..." << std::endl;
 
 	// Evaluate all features with each set of parameters
 	for (auto learner : sampled_learners) {
@@ -132,7 +131,7 @@ void Node::train(DataSplit ds) {
 	elapsed = (finish.tv_sec - start.tv_sec);
 	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
-	std::cout << "Finished training node in " << elapsed << " seconds. Entropy:" <<
+	std::cout << ">> Finished training node in " << elapsed << " seconds. Entropy:" <<
 		evaluateCostFunction(ds, best_threshold) << std::endl;
 	FeatureIterator split_it = computeSplitIterator(ds, best_threshold);
 	std::cout << "Best split:" << (split_it - ds.start) << "/" <<
@@ -140,11 +139,21 @@ void Node::train(DataSplit ds) {
 
 	//if the best split leaves all nodes here, mark as leaf
 	if (split_it == ds.start ||
-	    split_it == ds.end) {
-		std::cout << "Is leaf!!!" << std::endl;
+	    split_it == ds.end ||
+	    _depth == Settings::max_tree_depth) {
+		LabelHistogram hist(ds);
+		_label = hist.getMostLikelyLabel();
 		_is_leaf = true;
 	}
 
+}
+
+bool Node::fallsToLeftChild(Feature & feat) const {
+	feat.evaluate(_node_params);
+	if (feat.getValue() < _threshold)
+		return true;
+
+	return false;
 }
 
 FeatureIterator Node::getSplitIterator(DataSplit ds) const {

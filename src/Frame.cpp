@@ -99,7 +99,7 @@ Feature::Feature(int row, int col, int label, int image_id) :
 	_row(row), _col(col), _label(label), _image_id(image_id) {
 }
 
-void Feature::evaluate(LearnerParameters & params) {
+void Feature::evaluate(const LearnerParameters & params) {
 
 	Frame & im = FramePool::image_vector[_image_id];
 	float z = im(_row, _col);
