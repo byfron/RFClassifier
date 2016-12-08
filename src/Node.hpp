@@ -54,6 +54,7 @@ public:
 		for (int i = 0; i < _hist.size(); i++)
 			if (_hist[i] > 0)
 				sum += _hist[i]*log(_hist[i]);
+		return -sum;
 
 		std::cout << "entropy:" << -sum << std::endl;
 		getchar();
