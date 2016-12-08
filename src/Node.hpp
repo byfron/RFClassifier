@@ -78,7 +78,10 @@ class Node
 {
 public:
 
-	Node(int depth) : _depth(depth) {};
+	Node(int depth) :
+		_threshold(0.0),
+		_depth(depth),
+		_is_leaf(false) {};
 
 	void train(DataSplit);
 
