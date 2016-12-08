@@ -87,9 +87,11 @@ private:
 struct NodeConstructor {
 
 	NodeConstructor(int id,
+			float d,
 			FeatureIterator s,
-			FeatureIterator e) : node_id(id), start(s), end(e) {}
+			FeatureIterator e) : node_id(id), depth(d), start(s), end(e) {}
 	int node_id;
+	size_t depth;
 	FeatureIterator start, end;
 };
 
@@ -97,7 +99,7 @@ class Node
 {
 public:
 
-	Node(int depth) :
+	Node(size_t depth) :
 		_threshold(0.0),
 		_depth(depth),
 		_is_leaf(false) {};
@@ -131,7 +133,7 @@ private:
 
 	LearnerParameters _node_params;
 	float _threshold;
-	int _depth;
+	size_t _depth;
 	bool _is_leaf;
 	Label _label;
 };

@@ -139,8 +139,7 @@ void Node::train(DataSplit ds) {
 
 	//if the best split leaves all nodes here, mark as leaf
 	if (split_it == ds.start ||
-	    split_it == ds.end ||
-	    _depth == Settings::max_tree_depth) {
+	    split_it == ds.end) {
 		LabelHistogram hist(ds);
 		_label = hist.getMostLikelyLabel();
 		_is_leaf = true;

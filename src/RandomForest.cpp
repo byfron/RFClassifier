@@ -30,6 +30,7 @@ Label RandomTree::predict(Feature & feature) {
 
 std::vector<Label> RandomTree::predict(std::vector<Feature> & data) {
 
+	//TODO: book mem a priory
 	std::vector<Label> labels;
 	for (auto feature : data)
 		labels.push_back(predict(feature));
@@ -40,20 +41,21 @@ std::vector<Label> RandomTree::predict(std::vector<Feature> & data) {
 void RandomTree::train(std::vector<Feature> & data) {
 
 	_nodes.clear();
-	int depth = 0;
 	std::queue<NodeConstructor> queue;
 
+	size_t depth;
+
 	// Train root node
-	Node root_node(depth);
+	Node root_node(0);
 	DataSplit root_ds(data, data.begin(), data.end());
 	root_node.train(root_ds);
 
 	_nodes.push_back(root_node);
-	depth++;
 
 	if (!root_node.isLeaf()) {
 		queue.push(
-			NodeConstructor(0,
+			NodeConstructor(0, //id
+					0, //depth
 					data.begin(),
 					data.end()));
 	}
@@ -63,6 +65,7 @@ void RandomTree::train(std::vector<Feature> & data) {
 		size_t node_id = queue.front().node_id;
 		FeatureIterator start = queue.front().start;
 		FeatureIterator end = queue.front().end;
+		depth = queue.front().depth + 1;
 		queue.pop();
 
 		FeatureIterator split_it = _nodes[node_id].
@@ -88,6 +91,7 @@ void RandomTree::train(std::vector<Feature> & data) {
 		if (!left_node.isLeaf()) {
 			queue.push(
 				NodeConstructor(left_id,
+						depth,
 						start,
 						split_it));
 		}
@@ -95,21 +99,26 @@ void RandomTree::train(std::vector<Feature> & data) {
 		if (!right_node.isLeaf()) {
 			queue.push(
 				NodeConstructor(right_id,
+						depth,
 						split_it,
 						end));
 		}
-
-		depth++;
 	}
 
 	std::cout << "Finished training. Tree has " <<_nodes.size() << " nodes with depth :" << depth << std::endl;
 }
+
+std::vector<Label> RandomForest::predict(std::vector<Feature> & data) {
+	return _tree_ensemble[0].predict(data);
+}
+
 
 void RandomForest::train(std::vector<Feature> & data) {
 
 
 	RandomTree tree;
 	tree.train(data);
+	_tree_ensemble.push_back(tree);
 
 	std::ofstream file("tree.dat", std::ios::binary);
 	cereal::BinaryOutputArchive ar(file);

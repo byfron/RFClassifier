@@ -32,7 +32,7 @@ class RandomForest
 {
 
 public:
-
+	std::vector<Label> predict(std::vector<Feature>&);
 	void train(std::vector<Feature>&);
 
 private:

@@ -12,7 +12,17 @@ int main(int argc, char **argv) {
 	RandomForest random_forest;
 	random_forest.train(data);
 
-	// Check result on test
+	// Check result on traning
+	std::vector<Label> labels = random_forest.predict(data);
+
+
+	assert(labels.size() == data.size());
+
+	int idx = 0;
+	for (auto l : labels) {
+		std::cout << l << "-" << data[idx].getLabel() << std::endl;
+		idx++;
+	}
 
 	return 0;
 }
