@@ -169,7 +169,9 @@ float Node::evaluateCostFunction(const DataSplit ds,
 	std::cout << "rent:" << entr_right << std::endl;
 	
 	assert(ds.getSize() > 0);
-	
-	return (l_split.getSize()/ds.getSize()) * entr_left +
-		(r_split.getSize()/ds.getSize()) * entr_right;
+
+	float cost = (float(l_split.getSize())/ds.getSize()) * entr_left +
+		(float(r_split.getSize())/ds.getSize()) * entr_right;
+
+	return cost;
 }
