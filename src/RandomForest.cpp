@@ -10,12 +10,12 @@ void RandomTree::train(std::vector<Feature> & data) {
 	_nodes.clear();
 	int depth = 0;
 	std::queue<NodeConstructor> queue;
-	
+
 	// Train root node
 	Node root_node(depth);
 	DataSplit root_ds(data, data.begin(), data.end());
 	root_node.train(root_ds);
-	
+
 	_nodes.push_back(root_node);
 	depth++;
 
@@ -68,8 +68,10 @@ void RandomTree::train(std::vector<Feature> & data) {
 		}
 
 		depth++;
-		std::cout << _nodes.size() << "nodes with depth :" << depth << std::endl;
 	}
+
+	std::cout << "Finished training. Tree has " <<_nodes.size() << " nodes with depth :" << depth << std::endl;
+
 }
 
 void RandomForest::train(std::vector<Feature> & data) {

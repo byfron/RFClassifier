@@ -20,7 +20,7 @@ struct DataSplit {
 	int getSize() const {
 		return std::distance(start, end);
 	}
-	
+
 	std::vector<Feature> & data;
 	FeatureIterator start;
 	FeatureIterator end;
@@ -42,12 +42,12 @@ public:
 		float sum = 0;
 		for (auto b : _hist)
 			sum += b;
-		
+
 		if (sum  > 0)
 			for (int i = 0; i < _hist.size(); i++)
 				_hist[i]/=sum;
 	}
-	
+
 	float computeEntropy() const {
 
 		float sum = 0;
@@ -55,12 +55,8 @@ public:
 			if (_hist[i] > 0)
 				sum += _hist[i]*log(_hist[i]);
 		return -sum;
-
-		std::cout << "entropy:" << -sum << std::endl;
-		getchar();
-		return sum;
 	}
-	
+
 private:
 	std::vector<float> _hist;
 };

@@ -1,4 +1,5 @@
 #include "Node.hpp"
+#include <time.h>
 
 namespace {
 
@@ -11,9 +12,8 @@ namespace {
 		}
 
 		return it;
-		return it+1;
 	}
-	
+
 	void sampleOffset(float * offset) {
 
 		offset[0] = Settings::offset_box_size*2*random_real(0.0,1.0) -
@@ -21,21 +21,21 @@ namespace {
 		offset[1] = Settings::offset_box_size*2*random_real(0.0,1.0) -
 				Settings::offset_box_size/2;
 	}
-	
+
 	std::vector<LearnerParameters> sampleParameters() {
-		
+
 		std::vector<LearnerParameters> param_vec;
-		
+
 		for (int i = 0; i < Settings::num_offsets_per_pixel; i++) {
 
 			LearnerParameters param;
-			
+
 			//Sample offsets from a uniform distribution
 			sampleOffset(param.offset_1);
 			param.is_unary = random_real(0.0,1.0) > 0.5;
 			if (!param.is_unary)
 				sampleOffset(param.offset_2);
-						
+
 			param_vec.push_back(param);
 		}
 
@@ -56,13 +56,11 @@ namespace {
 LabelHistogram::LabelHistogram(DataSplit & ds) {
 
 	_hist = std::vector<float>(Settings::num_labels, 0.0);
+
 	for (FeatureIterator it = ds.start; it != ds.end; it++) {
 		_hist[it->getLabel()]+=1;
 	}
 
-	std::cout << "<" << ds.end - ds.start << ">" << std::endl;
-	print();
-	getchar();
 	normalize();
 }
 
@@ -83,13 +81,13 @@ void Node::train(DataSplit ds) {
 	// Sample a new set of parameters
 	std::vector<LearnerParameters> sampled_learners =
 		sampleParameters();
-	
+
 	float best_cost = INF;
 	float best_threshold;
 	LearnerParameters best_learner;
 
 	std::cout << "Evaluating features..." << std::endl;
-	
+
 	// Evaluate all features with each set of parameters
 	for (auto learner : sampled_learners) {
 
@@ -108,7 +106,6 @@ void Node::train(DataSplit ds) {
 		for (float threshold : learner_thresholds) {
 
 			float cost = evaluateCostFunction(ds, threshold);
-			std::cout << "cost:" << cost << std::endl;
 			if (cost < best_cost) {
 				best_threshold = threshold;
 				best_learner = learner;
@@ -119,8 +116,8 @@ void Node::train(DataSplit ds) {
 
 	// save learned node parameters
 	_node_params = best_learner;
-	_threshold = best_threshold;	
-	
+	_threshold = best_threshold;
+
 	// sort data acoording to the best learner,
 	// so that we know where to split in the next children nodes
 	for (FeatureIterator it = ds.start; it != ds.end; it++) {
@@ -158,16 +155,11 @@ float Node::evaluateCostFunction(const DataSplit ds,
 	DataSplit l_split = DataSplit(ds.data, ds.start, split_it);
 	DataSplit r_split = DataSplit(ds.data, split_it, ds.end);
 
-	std::cout << "first eval" << std::endl;
-	
 	LabelHistogram hist_left(l_split);
 	LabelHistogram hist_right(r_split);
 	float entr_left = hist_left.computeEntropy();
 	float entr_right = hist_right.computeEntropy();
 
-	std::cout << "lent:" << entr_left << std::endl;
-	std::cout << "rent:" << entr_right << std::endl;
-	
 	assert(ds.getSize() > 0);
 
 	float cost = (float(l_split.getSize())/ds.getSize()) * entr_left +
