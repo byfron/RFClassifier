@@ -41,13 +41,11 @@ namespace {
 		return param_vec;
 	}
 
-	std::vector<float> sampleThresholds() {
+	std::vector<float> sampleThresholds(float min, float max) {
 
 		std::vector<float> thresh_vec;
-		
 		for (int i = 0; i < Settings::num_thresholds_per_feature; i++) {
-			thresh_vec.push_back(Settings::maximum_depth_difference*2*random_real(0.0,1.0)
-					     - Settings::maximum_depth_difference);
+			thresh_vec.push_back(random_real(min, max));
 		}
 
 		return thresh_vec;
@@ -98,9 +96,10 @@ void Node::train(DataSplit ds) {
 		// Order features acoording to (Eq) function
 		std::sort(ds.start, ds.end);
 
-		//sample thresholds from a uniform distribution
+		//sample thresholds from a uniform distribution between
+		//min and max values of the split
 		std::vector<float> learner_thresholds =
-			sampleThresholds();
+			sampleThresholds(ds.start->getValue(), ds.end->getValue());
 
 		for (float threshold : learner_thresholds) {
 
