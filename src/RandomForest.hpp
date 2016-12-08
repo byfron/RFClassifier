@@ -17,11 +17,12 @@ public:
 	template<class Archive>
 	void serialize(Archive & archive)
 	{
-		archive(_nodes);
+		archive(a);
 	}
 
 private:
 
+	int a;
 	std::vector<Node> _nodes;
 };
 

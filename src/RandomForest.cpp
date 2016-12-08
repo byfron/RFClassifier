@@ -4,6 +4,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <fstream>
 
 void RandomTree::train(std::vector<Feature> & data) {
 
@@ -71,7 +72,6 @@ void RandomTree::train(std::vector<Feature> & data) {
 	}
 
 	std::cout << "Finished training. Tree has " <<_nodes.size() << " nodes with depth :" << depth << std::endl;
-
 }
 
 void RandomForest::train(std::vector<Feature> & data) {
@@ -80,4 +80,7 @@ void RandomForest::train(std::vector<Feature> & data) {
 	RandomTree tree;
 	tree.train(data);
 
+	std::ofstream file("tree.dat", std::ios::binary);
+	cereal::BinaryOutputArchive ar(file);
+	ar(tree);
 }
