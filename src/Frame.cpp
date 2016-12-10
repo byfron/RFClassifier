@@ -126,23 +126,23 @@ void Feature::evaluate(const LearnerParameters & params) {
 void FramePool::create() {
 
 	std::string main_db_path = getenv(MAIN_DB_PATH);
-	int num_images_per_seq = 10;
-	int num_max_sequences = 1;
+	int num_images_per_seq = 20;
+	int num_max_sequences = 5;
 	int num_camera = 1;
-	int size = 500;
+	int charbuffsize = 500;
 
-	std::unique_ptr<char[]> buf( new char[ size ] );
+	std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
 
 	for (int num_seq = 1; num_seq <= num_max_sequences; num_seq++) {
 		for (int num_im = 1; num_im < num_images_per_seq; num_im++) {
-			std::snprintf( buf.get(), size,
+			std::snprintf( buf.get(), charbuffsize,
 				       "%s/train/%d/images/depthRender/Cam%d/mayaProject.%06d.png",
 				       main_db_path.c_str(),
 				       num_seq, num_camera, num_im);
 
 			std::string path_depth(buf.get());
 
-			std::snprintf( buf.get(), size,
+			std::snprintf( buf.get(), charbuffsize,
 				       "%s/train/%d/images/groundtruth/Cam%d/mayaProject.%06d.png",
 				       main_db_path.c_str(),
 				       num_seq, num_camera, num_im);
