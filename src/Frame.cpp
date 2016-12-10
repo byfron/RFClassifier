@@ -96,7 +96,11 @@ std::vector<color> color_map =  {
 }
 
 Feature::Feature(int row, int col, int label, int image_id) :
-	_row(row), _col(col), _label(label), _image_id(image_id) {
+	_row(row)
+	, _col(col)
+	, _label(label)
+	, _value(0.0)
+	,_image_id(image_id) {
 }
 
 void Feature::evaluate(const LearnerParameters & params) {
