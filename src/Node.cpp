@@ -5,8 +5,8 @@ namespace {
 
 	FeatureIterator computeSplitIterator(DataSplit ds, float threshold) {
 
-		FeatureIterator it;
-		for (it = ds.start; it != ds.end; it++) {
+		FeatureIterator it = ds.start;
+		for (;it != ds.end; it++) {
 			if (it->getValue() > threshold)
 				break;
 		}
@@ -58,6 +58,7 @@ LabelHistogram::LabelHistogram(DataSplit & ds) {
 	_hist = std::vector<float>(Settings::num_labels, 0.0);
 
 	for (FeatureIterator it = ds.start; it != ds.end; it++) {
+		assert(it->getLabel() < _hist.size());
 		_hist[it->getLabel()]+=1;
 	}
 
@@ -86,7 +87,7 @@ void Node::train(DataSplit ds) {
 		sampleParameters();
 
 	float best_cost = INF;
-	float best_threshold;
+	float best_threshold = 0.0f;
 	LearnerParameters best_learner;
 
 	// Evaluate all features with each set of parameters
@@ -95,17 +96,20 @@ void Node::train(DataSplit ds) {
 		for (FeatureIterator it = ds.start; it != ds.end; it++) {
 			it->evaluate(learner);
 		}
-
-		// Order features acoording to (Eq) function
 		std::sort(ds.start, ds.end);
+
+		FeatureIterator last = ds.end - 1;
 
 		//sample thresholds from a uniform distribution between
 		//min and max values of the split
 		std::vector<float> learner_thresholds =
-			sampleThresholds(ds.start->getValue(), ds.end->getValue());
+			sampleThresholds(ds.start->getValue(), last->getValue());
+
+//		std::cout << "range:" << ds.start->getValue() << "," << last->getValue() << std::endl;
 
 		for (float threshold : learner_thresholds) {
 
+//			std::cout << threshold << std::endl;
 			float cost = evaluateCostFunction(ds, threshold);
 			if (cost < best_cost) {
 				best_threshold = threshold;
@@ -156,7 +160,11 @@ bool Node::fallsToLeftChild(Feature & feat) const {
 }
 
 FeatureIterator Node::getSplitIterator(DataSplit ds) const {
-	return computeSplitIterator(ds, _threshold);
+
+	FeatureIterator it = computeSplitIterator(ds, _threshold);
+	std::cout << "thresh:" << _threshold << std::endl;
+	std::cout << "left split:" << ds.end - it << std::endl;
+	return it;
 }
 
 float Node::evaluateCostFunction(const DataSplit ds,

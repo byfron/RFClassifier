@@ -20,11 +20,16 @@ struct LearnerParameters {
 	}
 };
 
-struct DataSplit {
+class DataSplit {
+
+public:
 
 	DataSplit(std::vector<Feature> & d,
 		  FeatureIterator s,
-		  FeatureIterator e) : data(d), start(s), end(e) {}
+		  FeatureIterator e) : data(d), start(s), end(e) {
+
+		//	std::cout << "Creating data split(" << end - start << ")" << std::endl;
+	}
 
 	int getSize() const {
 		return std::distance(start, end);
@@ -39,7 +44,6 @@ struct DataSplit {
 class LabelHistogram {
 public:
 	LabelHistogram(DataSplit & ds);
-	~LabelHistogram() {}
 	void print() const {
 		std::cout << std::endl << "# ";
 		for (auto b : _hist)
@@ -102,7 +106,10 @@ public:
 	Node(size_t depth) :
 		_threshold(0.0),
 		_depth(depth),
-		_is_leaf(false) {};
+		_is_leaf(false),
+		_label(0),
+		left_child(0),
+		right_child(0) {};
 
 	void train(DataSplit);
 

@@ -65,6 +65,7 @@ void RandomTree::train(std::vector<Feature> & data) {
 		size_t node_id = queue.front().node_id;
 		FeatureIterator start = queue.front().start;
 		FeatureIterator end = queue.front().end;
+
 		depth = queue.front().depth + 1;
 		queue.pop();
 

@@ -6,7 +6,7 @@
 #define INF 1000000//std::numeric_limits<float>::max()
 
 typedef cv::Vec<uchar,3> color;
-typedef short Label;
+typedef uint8_t Label;
 
 class Settings {
 public:

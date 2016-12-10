@@ -95,7 +95,7 @@ std::vector<color> color_map =  {
 	}
 }
 
-Feature::Feature(int row, int col, int label, int image_id) :
+Feature::Feature(int row, int col, Label label, int image_id) :
 	_row(row)
 	, _col(col)
 	, _label(label)
@@ -108,6 +108,8 @@ void Feature::evaluate(const LearnerParameters & params) {
 	Frame & im = FramePool::image_vector[_image_id];
 	float z = im(_row, _col);
 
+	//TODO: Make sure that the offset size makes sense
+
 	//If offset is outside the image project it back
 	int row = std::min(std::max(0, _row + int(params.offset_1[0]/z)),
 			   im.getImageSize().height);
@@ -115,23 +117,26 @@ void Feature::evaluate(const LearnerParameters & params) {
 			   im.getImageSize().width);
 
 	_value = im(row, col);
+//	std::cout << "val:" << _value << "-";
 
 	if (!params.is_unary) {
 		row = std::min(std::max(0, _row + int(params.offset_2[0]/z)),
 			       im.getImageSize().height);
 		col = std::min(std::max(0, _col + int(params.offset_2[1]/z)),
-					im.getImageSize().width);
+			       im.getImageSize().width);
 		z = im(row, col);
 	}
 
 	_value -= z;
+
+//	std::cout << _value << "." << std::endl;
 }
 
 void FramePool::create() {
 
 	std::string main_db_path = getenv(MAIN_DB_PATH);
-	int num_images_per_seq = 20;
-	int num_max_sequences = 5;
+	int num_images_per_seq = 10;
+	int num_max_sequences = 1;
 	int num_camera = 1;
 	int charbuffsize = 500;
 
@@ -158,10 +163,12 @@ void FramePool::create() {
 	}
 }
 
-std::vector<Feature> FramePool::computeFeatures() {
+void FramePool::computeFeatures(DataPtr features) {
 
-	int row, col;
-	std::vector<Feature> features;
+	int row = 0;
+	int col = 0;
+	int idx = 0;
+	features->resize(FramePool::image_vector.size()*Settings::num_pixels_per_image);
 
 	// For each image sample uniformly pixels in the foreground
 	for (int im_id = 0; im_id < FramePool::image_vector.size(); im_id++) {
@@ -169,13 +176,25 @@ std::vector<Feature> FramePool::computeFeatures() {
 		for (int i = 0; i < Settings::num_pixels_per_image; i++) {
 
 			Frame & image = FramePool::image_vector[im_id];
-
 			FrameUtils::sampleFromForeground(image, row, col);
-			features.push_back(Feature(row, col, image.getLabel(row, col), im_id));
+
+
+			// const cv::Mat & labels = image.getLabelImage();
+			// double min, max;
+			// cv::minMaxLoc(labels, &min, &max);
+			// assert(min >= 0);
+			// assert(max < Settings::num_labels);
+
+			// std::cout << "mm:" << min << "," << max << std::endl;
+
+
+			// std::cout << row << "," << col << "(" << labels.rows << "," << labels.cols << ")" << (int)image.getLabel(row, col) << ":" << (int)labels.at<uchar>(row, col) << std::endl;
+			// assert(image.getLabel(row, col) < Settings::num_labels);
+
+			features->operator[](idx) = Feature(row, col, image.getLabel(row, col), im_id);
+			idx++;
 		}
 	}
-
-	return features;
 }
 
 Frame::Frame(std::string depth_path,
@@ -204,7 +223,7 @@ void Frame::load(std::string depth_path,
 			rgba[3];
 
 		std::vector<cv::Point2i> locations;
-		int count = countNonZero(Labels);
+		int count = countNonZero(Labels > 0);
 		if (count > 0)
 			cv::findNonZero(Labels, locations);
 
@@ -226,8 +245,19 @@ void Frame::load(std::string depth_path,
 	// TODO:Set background to maximum value
 
 	_labels = FrameUtils::cropForeground(label_image, rgba[3]);
+
+
+
+	assert(depth.size() == _labels.size());
+
+	//DEBUG
+	double min, max;
+	cv::minMaxLoc(_labels, &min, &max);
+	assert(min >= 0);
+	assert(max < num_labels);
+
 }
 
-const float& Frame::operator()(int row, int col) {
+float Frame::operator()(int row, int col) {
 	return _depth.at<float>(row, col);
 }
