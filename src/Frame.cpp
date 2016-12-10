@@ -113,9 +113,9 @@ void Feature::evaluate(const LearnerParameters & params) {
 	_value = im(row, col);
 
 	if (!params.is_unary) {
-		row = std::max(std::min(0, _row + int(params.offset_2[0]/z)),
+		row = std::min(std::max(0, _row + int(params.offset_2[0]/z)),
 			       im.getImageSize().height);
-		col = std::max(std::min(0, _col + int(params.offset_2[1]/z)),
+		col = std::min(std::max(0, _col + int(params.offset_2[1]/z)),
 					im.getImageSize().width);
 		z = im(row, col);
 	}
