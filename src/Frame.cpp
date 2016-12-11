@@ -109,7 +109,7 @@ void Feature::evaluate(const LearnerParameters & params) {
 	float z = im(_row, _col);
 
 	//TODO: Make sure that the offset size makes sense
-
+	
 	//If offset is outside the image project it back
 	int row = std::min(std::max(0, _row + int(params.offset_1[0]/z)),
 			   im.getImageSize().height);
@@ -169,7 +169,7 @@ void FramePool::computeFeatures(DataPtr features) {
 	int col = 0;
 	int idx = 0;
 	features->resize(FramePool::image_vector.size()*Settings::num_pixels_per_image);
-
+	
 	// For each image sample uniformly pixels in the foreground
 	for (int im_id = 0; im_id < FramePool::image_vector.size(); im_id++) {
 
@@ -177,20 +177,6 @@ void FramePool::computeFeatures(DataPtr features) {
 
 			Frame & image = FramePool::image_vector[im_id];
 			FrameUtils::sampleFromForeground(image, row, col);
-
-
-			// const cv::Mat & labels = image.getLabelImage();
-			// double min, max;
-			// cv::minMaxLoc(labels, &min, &max);
-			// assert(min >= 0);
-			// assert(max < Settings::num_labels);
-
-			// std::cout << "mm:" << min << "," << max << std::endl;
-
-
-			// std::cout << row << "," << col << "(" << labels.rows << "," << labels.cols << ")" << (int)image.getLabel(row, col) << ":" << (int)labels.at<uchar>(row, col) << std::endl;
-			// assert(image.getLabel(row, col) < Settings::num_labels);
-
 			features->operator[](idx) = Feature(row, col, image.getLabel(row, col), im_id);
 			idx++;
 		}
@@ -245,17 +231,6 @@ void Frame::load(std::string depth_path,
 	// TODO:Set background to maximum value
 
 	_labels = FrameUtils::cropForeground(label_image, rgba[3]);
-
-
-
-	assert(depth.size() == _labels.size());
-
-	//DEBUG
-	double min, max;
-	cv::minMaxLoc(_labels, &min, &max);
-	assert(min >= 0);
-	assert(max < num_labels);
-
 }
 
 float Frame::operator()(int row, int col) {

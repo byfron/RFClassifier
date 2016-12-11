@@ -13,9 +13,9 @@ class RandomTree
 
 public:
 
-	std::vector<Label> predict(std::vector<Feature>&);
+	std::vector<Label> predict(DataPtr);
 	Label predict(Feature &);
-	void train(std::vector<Feature>&);
+	void train(DataPtr);
 
 	template<class Archive>
 	void serialize(Archive & archive)
@@ -32,8 +32,8 @@ class RandomForest
 {
 
 public:
-	std::vector<Label> predict(std::vector<Feature>&);
-	void train(std::vector<Feature>&);
+	std::vector<Label> predict(DataPtr);
+	void train(DataPtr);
 
 private:
 

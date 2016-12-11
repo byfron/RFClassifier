@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <fstream>
 
-
 Label RandomTree::predict(Feature & feature) {
 
 	size_t node_idx = 0;
@@ -28,17 +27,17 @@ Label RandomTree::predict(Feature & feature) {
 	}
 }
 
-std::vector<Label> RandomTree::predict(std::vector<Feature> & data) {
+std::vector<Label> RandomTree::predict(DataPtr data) {
 
 	//TODO: book mem a priory
 	std::vector<Label> labels;
-	for (auto feature : data)
+	for (auto feature : *data)
 		labels.push_back(predict(feature));
 
 	return labels;
 }
 
-void RandomTree::train(std::vector<Feature> & data) {
+void RandomTree::train(DataPtr data) {
 
 	_nodes.clear();
 	std::queue<NodeConstructor> queue;
@@ -47,7 +46,7 @@ void RandomTree::train(std::vector<Feature> & data) {
 
 	// Train root node
 	Node root_node(0);
-	DataSplit root_ds(data, data.begin(), data.end());
+	DataSplit root_ds(data, data->begin(), data->end());
 	root_node.train(root_ds);
 
 	_nodes.push_back(root_node);
@@ -56,8 +55,8 @@ void RandomTree::train(std::vector<Feature> & data) {
 		queue.push(
 			NodeConstructor(0, //id
 					0, //depth
-					data.begin(),
-					data.end()));
+					data->begin(),
+					data->end()));
 	}
 
 	while(queue.size() > 0) {
@@ -109,12 +108,12 @@ void RandomTree::train(std::vector<Feature> & data) {
 	std::cout << "Finished training. Tree has " <<_nodes.size() << " nodes with depth :" << depth << std::endl;
 }
 
-std::vector<Label> RandomForest::predict(std::vector<Feature> & data) {
+std::vector<Label> RandomForest::predict(DataPtr data) {
 	return _tree_ensemble[0].predict(data);
 }
 
 
-void RandomForest::train(std::vector<Feature> & data) {
+void RandomForest::train(DataPtr data) {
 
 
 	RandomTree tree;

@@ -4,7 +4,9 @@
 #include "RandomGenerator.hpp"
 #include <cereal/archives/binary.hpp>
 
-typedef std::vector<Feature>::iterator FeatureIterator;
+typedef std::vector<Feature> Data;
+typedef std::shared_ptr<Data> DataPtr;
+typedef Data::iterator FeatureIterator;
 
 struct LearnerParameters {
 	bool is_unary;
@@ -24,7 +26,7 @@ class DataSplit {
 
 public:
 
-	DataSplit(std::vector<Feature> & d,
+	DataSplit(DataPtr d,
 		  FeatureIterator s,
 		  FeatureIterator e) : data(d), start(s), end(e) {
 
@@ -35,7 +37,7 @@ public:
 		return std::distance(start, end);
 	}
 
-	std::vector<Feature> & data;
+	DataPtr data;
 	FeatureIterator start;
 	FeatureIterator end;
 };

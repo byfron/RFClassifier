@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
 	// Load training
 	FramePool::create();
 
-	std::vector<Feature> data;
+	DataPtr data = std::make_shared<Data>();
 	FramePool::computeFeatures(data);
 
 	// Train forest
@@ -17,11 +17,11 @@ int main(int argc, char **argv) {
 	std::vector<Label> labels = random_forest.predict(data);
 
 
-	assert(labels.size() == data.size());
+	assert(labels.size() == data->size());
 
 	int idx = 0;
 	for (auto l : labels) {
-		std::cout << l << "-" << data[idx].getLabel() << std::endl;
+		std::cout << l << "-" << data->operator[](idx).getLabel() << std::endl;
 		idx++;
 	}
 

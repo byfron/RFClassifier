@@ -32,6 +32,11 @@ private:
 	int _image_id;
 };
 
+typedef std::vector<Feature> Data;
+typedef std::shared_ptr<Data> DataPtr;
+typedef Data::iterator FeatureIterator;
+
+
 class Frame {
 public:
 
@@ -63,7 +68,7 @@ private:
 class FramePool {
 public:
 
-	static void computeFeatures(std::vector<Feature> &);
+	static void computeFeatures(DataPtr);
 	static void create();
 	static std::vector<Frame> image_vector;
 
