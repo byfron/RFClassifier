@@ -15,6 +15,7 @@ public:
 
 	std::vector<Label> predict(DataPtr);
 	Label predict(Feature &);
+	Frame predict(Frame & frame);
 	void train(DataPtr);
 
 	template<class Archive>
@@ -23,6 +24,10 @@ public:
 		archive(_nodes);
 	}
 
+	size_t getNumNodes() {
+		return _nodes.size();
+	}
+	
 private:
 
 	std::vector<Node> _nodes;

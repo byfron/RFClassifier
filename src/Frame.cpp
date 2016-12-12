@@ -95,36 +95,40 @@ std::vector<color> color_map =  {
 	}
 }
 
-Feature::Feature(int row, int col, Label label, int image_id) :
+Feature::Feature(int row, int col, Label label, const Frame *image) :
 	_row(row)
 	, _col(col)
 	, _label(label)
 	, _value(0.0)
-	,_image_id(image_id) {
+	,_image(image) {
+}
+
+const Frame *Feature::getFrame() const {
+	return _image;
 }
 
 void Feature::evaluate(const LearnerParameters & params) {
-
-	Frame & im = FramePool::image_vector[_image_id];
-	float z = im(_row, _col);
+	
+	const Frame *im = getFrame();
+	float z = im->operator()(_row, _col);
 
 	//TODO: Make sure that the offset size makes sense
 	
 	//If offset is outside the image project it back
 	int row = std::min(std::max(0, _row + int(params.offset_1[0]/z)),
-			   im.getImageSize().height);
+			   im->getImageSize().height);
 	int col = std::min(std::max(0, _col + int(params.offset_1[1]/z)),
-			   im.getImageSize().width);
+			   im->getImageSize().width);
 
-	_value = im(row, col);
+	_value = im->operator()(row, col);
 //	std::cout << "val:" << _value << "-";
 
 	if (!params.is_unary) {
 		row = std::min(std::max(0, _row + int(params.offset_2[0]/z)),
-			       im.getImageSize().height);
+			       im->getImageSize().height);
 		col = std::min(std::max(0, _col + int(params.offset_2[1]/z)),
-			       im.getImageSize().width);
-		z = im(row, col);
+			       im->getImageSize().width);
+		z = im->operator()(row, col);
 	}
 
 	_value -= z;
@@ -177,15 +181,50 @@ void FramePool::computeFeatures(DataPtr features) {
 
 			Frame & image = FramePool::image_vector[im_id];
 			FrameUtils::sampleFromForeground(image, row, col);
-			features->operator[](idx) = Feature(row, col, image.getLabel(row, col), im_id);
+			features->operator[](idx) = Feature(row, col, image.getLabel(row, col), &image);
 			idx++;
 		}
 	}
 }
 
 Frame::Frame(std::string depth_path,
-		  std::string gt_path) {
+	     std::string gt_path) {
 	load(depth_path, gt_path);
+}
+
+void Frame::show() {
+
+	cv::Mat depth = (_depth/1.03 - 50)*255./(800.-50.);
+	depth.convertTo(depth, CV_8UC1);
+	cv::imshow("depth", depth);
+
+	cv::Mat labels(_labels.size(), CV_8UC3);
+
+	for (int row = 0; row < _labels.rows; row++) {
+		for (int col = 0; col < _labels.cols; col++) {
+			uchar label = _labels.at<uchar>(row, col);
+			labels.at<color>(row,col) = FrameUtils::color_map[label];
+		}
+	}
+	
+	cv::imshow("labels", labels);
+	cv::waitKey(0);
+}
+
+void Frame::computeForegroundFeatures(Data & features) {
+
+	features.clear();
+	cv::Size s = getImageSize();
+	for (int row = 0; row < s.height; row++) {
+		for (int col = 0; col < s.width; col++) {
+			Label l = getLabel(row, col);
+			if (l != (int)Labels::Background) {
+				features.push_back(Feature(row, col, l, this));
+			}
+		}
+	}
+
+	getchar();
 }
 
 void Frame::load(std::string depth_path,
@@ -198,7 +237,7 @@ void Frame::load(std::string depth_path,
 	cv::split(gt_image, rgba);
 
 	int num_labels = FrameUtils::color_map.size();
-
+	
 	// Generate label image
 	for (uchar label = 0; label < num_labels; label++) {
 
@@ -222,8 +261,6 @@ void Frame::load(std::string depth_path,
 	cv::Mat depth = FrameUtils::cropForeground(
 		cv::imread(depth_path, CV_LOAD_IMAGE_GRAYSCALE), rgba[3]);
 
-
-
 	// Transform to centimeters
 	depth.convertTo(_depth, CV_32FC1);
 	_depth = (_depth/255. * (800-50) + 50)*1.03;
@@ -233,6 +270,6 @@ void Frame::load(std::string depth_path,
 	_labels = FrameUtils::cropForeground(label_image, rgba[3]);
 }
 
-float Frame::operator()(int row, int col) {
+float Frame::operator()(int row, int col) const {
 	return _depth.at<float>(row, col);
 }

@@ -77,8 +77,8 @@ void Node::train(DataSplit ds) {
 	// Check if we are finished (reached max depth)
 	if (_depth == Settings::max_tree_depth) {
 		_is_leaf = true;
-
-		//what here?
+		LabelHistogram hist(ds);
+		_label = hist.getMostLikelyLabel();
 		return;
 	}
 

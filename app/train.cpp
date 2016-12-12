@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
 
 	int idx = 0;
 	for (auto l : labels) {
-		std::cout << l << "-" << data->operator[](idx).getLabel() << std::endl;
+		std::cout << (int)l << "-" << (int)data->operator[](idx).getLabel() << std::endl;
 		idx++;
 	}
 

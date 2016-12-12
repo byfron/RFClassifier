@@ -4,3 +4,10 @@ add_executable(train
 target_link_libraries(train
   Frame
   RandomForest)
+
+add_executable(predict
+  predict.cpp)
+
+target_link_libraries(predict
+  Frame
+  RandomForest)

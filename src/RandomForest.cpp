@@ -27,6 +27,21 @@ Label RandomTree::predict(Feature & feature) {
 	}
 }
 
+Frame RandomTree::predict(Frame & frame) {
+
+	Frame output = frame;
+	Data features;
+	frame.computeForegroundFeatures(features);
+		
+	for (auto feature : features) {
+		Label l = predict(feature);
+		std::cout << (int)l << std::endl;
+		output.setLabel(feature.row(), feature.col(), l);
+	}
+	return output;
+}
+
+
 std::vector<Label> RandomTree::predict(DataPtr data) {
 
 	//TODO: book mem a priory

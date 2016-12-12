@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 class LearnerParameters;
+class Frame;
 
 enum class Labels {
 	Background,
@@ -14,22 +15,27 @@ enum class Labels {
 class Feature {
 public:
 	Feature() {}
-	Feature(int row, int col, Label label, int im_id);
+	Feature(int row, int col, Label label, const Frame* im);
 	void evaluate(const LearnerParameters & params);
 
 	bool operator< (const Feature& f) const {
 		return _value < f._value;
 	}
 
+	const Frame *getFrame() const;
+	
 	const float & getValue() { return _value; }
 	const Label & getLabel() { return _label; }
+
+	const int row() { return _row; }
+	const int col() { return _col; }
 
 private:
 	int _row;
 	int _col;
 	Label _label;
 	float _value;
-	int _image_id;
+	const Frame* _image;
 };
 
 typedef std::vector<Feature> Data;
@@ -53,8 +59,14 @@ public:
 		return _labels;
 	}
 
-	float operator()(int row, int col);
+	void show();
+	void computeForegroundFeatures(Data & features);
+	
+	float operator()(int row, int col) const ;
 
+	void setLabel(int row, int col, Label value) {
+		_labels.at<uchar>(row, col) = (uchar)value;
+	}
 	cv::Size getImageSize() const {
 		return _depth.size();
 	}

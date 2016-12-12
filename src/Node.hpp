@@ -105,6 +105,7 @@ class Node
 {
 public:
 
+	Node() {}
 	Node(size_t depth) :
 		_threshold(0.0),
 		_depth(depth),
