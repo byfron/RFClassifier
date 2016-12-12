@@ -18,17 +18,15 @@ public:
 	Feature(int row, int col, Label label, const Frame* im);
 	void evaluate(const LearnerParameters & params);
 
-	bool operator< (const Feature& f) const {
+	inline bool operator< (const Feature& f) const {
 		return _value < f._value;
 	}
 
-	const Frame *getFrame() const;
-
-	const float & getValue() { return _value; }
-	const Label & getLabel() { return _label; }
-
-	const int row() { return _row; }
-	const int col() { return _col; }
+	inline const Frame *getFrame() const;
+	inline const float & getValue() { return _value; }
+	inline const Label & getLabel() { return _label; }
+	inline const int row() { return _row; }
+	inline const int col() { return _col; }
 
 private:
 	int _row;
@@ -51,27 +49,28 @@ public:
 	void load(std::string depth_path,
 		  std::string gt_path);
 
-	Label getLabel(int row, int col) const {
+	inline Label getLabel(int row, int col) const {
 		return (Label)_labels.at<uchar>(row, col);
 	}
 
-	const cv::Mat & getLabelImage() const {
+	inline const cv::Mat & getLabelImage() const {
 		return _labels;
 	}
 
-	const cv::Mat & getDepthImage() const {
+	inline const cv::Mat & getDepthImage() const {
 		return _depth;
 	}
 
 	void show();
 	void computeForegroundFeatures(Data & features);
 
-	float operator()(int row, int col) const ;
+	inline float operator()(int row, int col) const ;
 
-	void setLabel(int row, int col, Label value) {
+	inline void setLabel(int row, int col, Label value) {
 		_labels.at<uchar>(row, col) = (uchar)value;
 	}
-	cv::Size getImageSize() const {
+
+	inline cv::Size getImageSize() const {
 		return _depth.size();
 	}
 
