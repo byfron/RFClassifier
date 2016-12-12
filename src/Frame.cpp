@@ -123,24 +123,21 @@ void Feature::evaluate(const LearnerParameters & params) {
 	//TODO: I should not project the offset if I don't change the learner.
 	//I should just take the max distance if it projects outside the image
 	int row = std::min(std::max(0, _row + int(params.offset_1[0]/z)),
-			   im->getImageSize().height);
+			   im->getImageSize().height-1);
 	int col = std::min(std::max(0, _col + int(params.offset_1[1]/z)),
-			   im->getImageSize().width);
+			   im->getImageSize().width-1);
 
 	_value = im->operator()(row, col);
-//	std::cout << "val:" << _value << "-";
 
 	if (!params.is_unary) {
 		row = std::min(std::max(0, _row + int(params.offset_2[0]/z)),
-			       im->getImageSize().height);
+			       im->getImageSize().height-1);
 		col = std::min(std::max(0, _col + int(params.offset_2[1]/z)),
-			       im->getImageSize().width);
+			       im->getImageSize().width-1);
 		z = im->operator()(row, col);
 	}
 
 	_value -= z;
-
-//	std::cout << _value << "." << std::endl;
 }
 
 void FramePool::create(float max_size) {
@@ -201,9 +198,10 @@ void FramePool::create(float max_size) {
 		std::cout << "Total images: " << total_frames << " - Memory used:" << size << "G" << std::endl;
 	}
 
-
-
-	// for (int num_seq = 1; num_seq <= num_max_sequences; num_seq++) {
+	// max_sequences = 1;
+	// int num_images_per_seq = 256;
+	// int num_camera = 1;
+	// for (int num_seq = 1; num_seq <= max_sequences; num_seq++) {
 	// 	for (int num_im = 1; num_im < num_images_per_seq; num_im++) {
 	// 		std::snprintf( buf.get(), charbuffsize,
 	// 			       "%s/train/%d/images/depthRender/Cam%d/mayaProject.%06d.png",
@@ -293,6 +291,8 @@ void Frame::load(std::string depth_path,
 	cv::Mat rgba[4];
 	cv::split(gt_image, rgba);
 
+	cv::Mat fw_mask = rgba[3];
+
 	int num_labels = FrameUtils::color_map.size();
 
 	// Generate label image
@@ -302,10 +302,10 @@ void Frame::load(std::string depth_path,
 			(abs(rgba[0] - FrameUtils::color_map[label][2]) < 3) &
 			(abs(rgba[1] - FrameUtils::color_map[label][1]) < 3) &
 			(abs(rgba[2] - FrameUtils::color_map[label][0]) < 3) &
-			rgba[3];
+			fw_mask;
 
 		std::vector<cv::Point2i> locations;
-		int count = countNonZero(Labels > 0);
+		int count = countNonZero(Labels);
 		if (count > 0)
 			cv::findNonZero(Labels, locations);
 
@@ -318,11 +318,25 @@ void Frame::load(std::string depth_path,
 	cv::Mat depth = FrameUtils::cropForeground(
 		cv::imread(depth_path, CV_LOAD_IMAGE_GRAYSCALE), rgba[3]);
 
+	//Crop mask
+	cv::Mat cropped_mask = FrameUtils::cropForeground(fw_mask, fw_mask);
+
 	// Transform to centimeters
 	depth.convertTo(_depth, CV_32FC1);
 	_depth = (_depth/255. * (800-50) + 50)*1.03;
 
 	// TODO:Set background to maximum value
+	std::vector<cv::Point2i> locations;
+	int count = countNonZero(cropped_mask);
+	if (count > 0)
+		cv::findNonZero(cropped_mask, locations);
+
+	for (auto p : locations) {
+		_depth.at<float>(p) = MAX_DEPTH;
+	}
+
+
+
 
 	_labels = FrameUtils::cropForeground(label_image, rgba[3]);
 }

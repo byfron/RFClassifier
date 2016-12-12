@@ -4,7 +4,8 @@
 #include <algorithm>
 
 #define MAIN_DB_PATH "DB_PATH"
-#define INF std::numeric_limits<float>::max()
+#define INF 100000000 //std::numeric_limits<float>::max()
+#define MAX_DEPTH 10000
 
 /// Data types
 typedef cv::Vec<uchar,3> color;

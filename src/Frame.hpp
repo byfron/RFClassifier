@@ -59,6 +59,10 @@ public:
 		return _labels;
 	}
 
+	const cv::Mat & getDepthImage() const {
+		return _depth;
+	}
+
 	void show();
 	void computeForegroundFeatures(Data & features);
 
