@@ -301,7 +301,7 @@ void Frame::load(std::string depth_path,
 	cv::Mat rgba[4];
 	cv::split(gt_image, rgba);
 
-	cv::Mat fw_mask = rgba[3];
+	cv::Mat fw_mask = rgba[3] > 0;
 
 	int num_labels = FrameUtils::color_map.size();
 
@@ -337,9 +337,7 @@ void Frame::load(std::string depth_path,
 
 	// TODO:Set background to maximum value
 	std::vector<cv::Point2i> locations;
-	int count = countNonZero(cropped_mask);
-	if (count > 0)
-		cv::findNonZero(cropped_mask, locations);
+	cv::findNonZero(1 - cropped_mask, locations);
 
 	for (auto p : locations) {
 		_depth.at<float>(p) = MAX_DEPTH;
