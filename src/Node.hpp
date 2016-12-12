@@ -3,7 +3,6 @@
 #include "Frame.hpp"
 #include "RandomGenerator.hpp"
 #include <cereal/archives/binary.hpp>
-#include <Eigen/Dense>
 
 typedef std::vector<Feature> Data;
 typedef std::shared_ptr<Data> DataPtr;
