@@ -2,6 +2,11 @@
 #include "RandomForest.hpp"
 #include "RandomGenerator.hpp"
 
+double bytesToGigabytes(long bytes)
+{
+	return bytes * 9.31322574615479e-10;
+}
+
 std::vector<Frame> FramePool::image_vector = std::vector<Frame>();
 
 namespace FrameUtils{
@@ -108,12 +113,12 @@ const Frame *Feature::getFrame() const {
 }
 
 void Feature::evaluate(const LearnerParameters & params) {
-	
+
 	const Frame *im = getFrame();
 	float z = im->operator()(_row, _col);
 
 	//TODO: Make sure that the offset size makes sense
-	
+
 	//If offset is outside the image project it back
 	int row = std::min(std::max(0, _row + int(params.offset_1[0]/z)),
 			   im->getImageSize().height);
@@ -139,32 +144,83 @@ void Feature::evaluate(const LearnerParameters & params) {
 void FramePool::create() {
 
 	std::string main_db_path = getenv(MAIN_DB_PATH);
-	int num_images_per_seq = 10;
-	int num_max_sequences = 1;
-	int num_camera = 1;
+	int max_images_per_cam = 1000;
+	int max_sequences = 100;
+	int max_cams = 3;
 	int charbuffsize = 500;
 
 	std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
 
-	for (int num_seq = 1; num_seq <= num_max_sequences; num_seq++) {
-		for (int num_im = 1; num_im < num_images_per_seq; num_im++) {
-			std::snprintf( buf.get(), charbuffsize,
-				       "%s/train/%d/images/depthRender/Cam%d/mayaProject.%06d.png",
-				       main_db_path.c_str(),
-				       num_seq, num_camera, num_im);
+	float size = 0;
+	float max_size = 0.001;//1.5; //1.5 gigs
+	int num_seq = 1;
+	int num_im = 1;
+	int num_cam = 1;
+	int total_frames = 0;
 
-			std::string path_depth(buf.get());
+	while(size <= max_size) {
 
-			std::snprintf( buf.get(), charbuffsize,
-				       "%s/train/%d/images/groundtruth/Cam%d/mayaProject.%06d.png",
-				       main_db_path.c_str(),
-				       num_seq, num_camera, num_im);
+		std::snprintf( buf.get(), charbuffsize,
+			       "%s/train/%d/images/depthRender/Cam%d/mayaProject.%06d.png",
+			       main_db_path.c_str(),
+			       num_seq, num_cam, num_im);
 
-			std::string path_gt(buf.get());
+		std::string path_depth(buf.get());
 
-			FramePool::image_vector.push_back(Frame(path_depth, path_gt));
+		std::snprintf( buf.get(), charbuffsize,
+			       "%s/train/%d/images/groundtruth/Cam%d/mayaProject.%06d.png",
+			       main_db_path.c_str(),
+			       num_seq, num_cam, num_im);
+
+		std::string path_gt(buf.get());
+
+		Frame frame(path_depth, path_gt);
+
+		FramePool::image_vector.push_back(frame);
+
+		if (num_im <= max_images_per_cam) {
+			num_im++;
 		}
+		else {
+			num_im = 1;
+			if (num_cam < max_cams) {
+				num_cam++;
+			}
+			else {
+				num_cam = 1;
+				if (num_seq < max_sequences) {
+					num_seq++;
+				}
+				else break;
+			}
+		}
+
+		size += bytesToGigabytes(frame.getFrameSizeInBytes());
+		total_frames++;
+		std::cout << "Total images: " << total_frames << " - Memory used:" << size << "G" << std::endl;
 	}
+
+
+
+	// for (int num_seq = 1; num_seq <= num_max_sequences; num_seq++) {
+	// 	for (int num_im = 1; num_im < num_images_per_seq; num_im++) {
+	// 		std::snprintf( buf.get(), charbuffsize,
+	// 			       "%s/train/%d/images/depthRender/Cam%d/mayaProject.%06d.png",
+	// 			       main_db_path.c_str(),
+	// 			       num_seq, num_camera, num_im);
+
+	// 		std::string path_depth(buf.get());
+
+	// 		std::snprintf( buf.get(), charbuffsize,
+	// 			       "%s/train/%d/images/groundtruth/Cam%d/mayaProject.%06d.png",
+	// 			       main_db_path.c_str(),
+	// 			       num_seq, num_camera, num_im);
+
+	// 		std::string path_gt(buf.get());
+
+	// 		FramePool::image_vector.push_back(Frame(path_depth, path_gt));
+	// 	}
+	// }
 }
 
 void FramePool::computeFeatures(DataPtr features) {
@@ -173,7 +229,7 @@ void FramePool::computeFeatures(DataPtr features) {
 	int col = 0;
 	int idx = 0;
 	features->resize(FramePool::image_vector.size()*Settings::num_pixels_per_image);
-	
+
 	// For each image sample uniformly pixels in the foreground
 	for (int im_id = 0; im_id < FramePool::image_vector.size(); im_id++) {
 
@@ -206,7 +262,7 @@ void Frame::show() {
 			labels.at<color>(row,col) = FrameUtils::color_map[label];
 		}
 	}
-	
+
 	cv::imshow("labels", labels);
 	cv::waitKey(0);
 }
@@ -237,7 +293,7 @@ void Frame::load(std::string depth_path,
 	cv::split(gt_image, rgba);
 
 	int num_labels = FrameUtils::color_map.size();
-	
+
 	// Generate label image
 	for (uchar label = 0; label < num_labels; label++) {
 

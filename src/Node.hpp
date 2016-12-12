@@ -3,6 +3,7 @@
 #include "Frame.hpp"
 #include "RandomGenerator.hpp"
 #include <cereal/archives/binary.hpp>
+#include <Eigen/Dense>
 
 typedef std::vector<Feature> Data;
 typedef std::shared_ptr<Data> DataPtr;
@@ -45,30 +46,15 @@ public:
 
 class LabelHistogram {
 public:
-	LabelHistogram(DataSplit & ds);
-	void print() const {
-		std::cout << std::endl << "# ";
-		for (auto b : _hist)
-			std::cout << b << " ";
-		std::cout << "#" << std::endl;
-	}
+	static inline Label getMostLikelyLabel(DataSplit & ds) {
 
-	void normalize() {
-		float sum = 0;
-		for (auto b : _hist)
-			sum += b;
+		std::vector<float> & hist = createHistogram(ds);
 
-		if (sum  > 0)
-			for (int i = 0; i < _hist.size(); i++)
-				_hist[i]/=sum;
-	}
-
-	Label getMostLikelyLabel() {
 		Label best_label;
 		float max_prob = 0.0;
-		for (int i = 0; i < _hist.size(); i++) {
-			if (_hist[i] > max_prob) {
-				max_prob = _hist[i];
+		for (int i = 0; i < hist.size(); i++) {
+			if (hist[i] > max_prob) {
+				max_prob = hist[i];
 				best_label = (Label)i;
 			}
 		}
@@ -76,17 +62,35 @@ public:
 		return best_label;
 	}
 
-	float computeEntropy() const {
+	static inline std::vector<float> & createHistogram(DataSplit & ds) {
 
-		float sum = 0;
-		for (int i = 0; i < _hist.size(); i++)
-			if (_hist[i] > 0)
-				sum += _hist[i]*log(_hist[i]);
-		return -sum;
+		static std::vector<float> hist = std::vector<float>(Settings::num_labels);
+
+		for (int i = 0; i < Settings::num_labels; i++)
+			hist[i] = 0.0;
+
+		const float normalised_bin = 1./(ds.end - ds.start);
+		for (FeatureIterator it = ds.start; it != ds.end; it++) {
+			hist[it->getLabel()]+=normalised_bin;
+		}
+
+		return hist;
 	}
 
-private:
-	std::vector<float> _hist;
+
+	static inline float computeEntropy(DataSplit & ds) {
+
+		float sum = 0;
+		std::vector<float> & hist = createHistogram(ds);
+
+		for (int i = 0; i < Settings::num_labels; i++) {
+			if (hist[i] > 0) {
+				sum += hist[i]*log(hist[i]);
+			}
+		}
+
+		return -sum;
+	}
 };
 
 

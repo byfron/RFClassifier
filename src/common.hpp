@@ -1,6 +1,7 @@
 #pragma once
 #include <opencv2/opencv.hpp>
 #include <random>
+#include "sse.h"
 
 #define MAIN_DB_PATH "DB_PATH"
 #define INF 1000000//std::numeric_limits<float>::max()
@@ -20,3 +21,52 @@ public:
 	static int offset_box_size;
 	static int num_labels;
 };
+
+static inline float
+fastlog2 (float x)
+{
+  union { float f; uint32_t i; } vx = { x };
+  union { uint32_t i; float f; } mx = { (vx.i & 0x007FFFFF) | 0x3f000000 };
+  float y = vx.i;
+  y *= 1.1920928955078125e-7f;
+
+  return y - 124.22551499f
+           - 1.498030302f * mx.f
+           - 1.72587999f / (0.3520887068f + mx.f);
+}
+
+static inline float
+fastlog (float x)
+{
+  return 0.69314718f * fastlog2 (x);
+}
+
+#ifdef __SSE2__
+
+static inline v4sf
+vfastlog2 (v4sf x)
+{
+  union { v4sf f; v4si i; } vx = { x };
+  union { v4si i; v4sf f; } mx; mx.i = (vx.i & v4sil (0x007FFFFF)) | v4sil (0x3f000000);
+  v4sf y = v4si_to_v4sf (vx.i);
+  y *= v4sfl (1.1920928955078125e-7f);
+
+  const v4sf c_124_22551499 = v4sfl (124.22551499f);
+  const v4sf c_1_498030302 = v4sfl (1.498030302f);
+  const v4sf c_1_725877999 = v4sfl (1.72587999f);
+  const v4sf c_0_3520087068 = v4sfl (0.3520887068f);
+
+  return y - c_124_22551499
+           - c_1_498030302 * mx.f
+           - c_1_725877999 / (c_0_3520087068 + mx.f);
+}
+
+static inline v4sf
+vfastlog (v4sf x)
+{
+  const v4sf c_0_69314718 = v4sfl (0.69314718f);
+
+  return c_0_69314718 * vfastlog2 (x);
+}
+
+#endif

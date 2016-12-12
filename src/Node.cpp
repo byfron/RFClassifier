@@ -53,18 +53,6 @@ namespace {
 	}
 }
 
-LabelHistogram::LabelHistogram(DataSplit & ds) {
-
-	_hist = std::vector<float>(Settings::num_labels, 0.0);
-
-	for (FeatureIterator it = ds.start; it != ds.end; it++) {
-		assert(it->getLabel() < _hist.size());
-		_hist[it->getLabel()]+=1;
-	}
-
-	normalize();
-}
-
 void Node::train(DataSplit ds) {
 
 	assert(ds.getSize() > 0);
@@ -77,8 +65,7 @@ void Node::train(DataSplit ds) {
 	// Check if we are finished (reached max depth)
 	if (_depth == Settings::max_tree_depth) {
 		_is_leaf = true;
-		LabelHistogram hist(ds);
-		_label = hist.getMostLikelyLabel();
+		_label = LabelHistogram::getMostLikelyLabel(ds);
 		return;
 	}
 
@@ -144,8 +131,7 @@ void Node::train(DataSplit ds) {
 	//if the best split leaves all nodes here, mark as leaf
 	if (split_it == ds.start ||
 	    split_it == ds.end) {
-		LabelHistogram hist(ds);
-		_label = hist.getMostLikelyLabel();
+		_label = LabelHistogram::getMostLikelyLabel(ds);
 		_is_leaf = true;
 	}
 
@@ -175,10 +161,9 @@ float Node::evaluateCostFunction(const DataSplit ds,
 	DataSplit l_split = DataSplit(ds.data, ds.start, split_it);
 	DataSplit r_split = DataSplit(ds.data, split_it, ds.end);
 
-	LabelHistogram hist_left(l_split);
-	LabelHistogram hist_right(r_split);
-	float entr_left = hist_left.computeEntropy();
-	float entr_right = hist_right.computeEntropy();
+	float entr_left = LabelHistogram::computeEntropy(l_split);
+	float entr_right = LabelHistogram::computeEntropy(r_split);
+
 	float cost = (float(l_split.getSize())/ds.getSize()) * entr_left +
 		(float(r_split.getSize())/ds.getSize()) * entr_right;
 

@@ -23,7 +23,7 @@ public:
 	}
 
 	const Frame *getFrame() const;
-	
+
 	const float & getValue() { return _value; }
 	const Label & getLabel() { return _label; }
 
@@ -61,7 +61,7 @@ public:
 
 	void show();
 	void computeForegroundFeatures(Data & features);
-	
+
 	float operator()(int row, int col) const ;
 
 	void setLabel(int row, int col, Label value) {
@@ -69,6 +69,12 @@ public:
 	}
 	cv::Size getImageSize() const {
 		return _depth.size();
+	}
+
+	size_t getFrameSizeInBytes() const {
+		size_t depthInBytes = _depth.step[0] * _depth.rows;
+		size_t labelsInBytes = _labels.step[0] * _labels.rows;
+		return depthInBytes + labelsInBytes;
 	}
 
 private:

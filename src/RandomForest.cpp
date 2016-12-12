@@ -32,7 +32,7 @@ Frame RandomTree::predict(Frame & frame) {
 	Frame output = frame;
 	Data features;
 	frame.computeForegroundFeatures(features);
-		
+
 	for (auto feature : features) {
 		Label l = predict(feature);
 		std::cout << (int)l << std::endl;
