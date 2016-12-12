@@ -4,7 +4,6 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
-#include <fstream>
 
 Label RandomTree::predict(Feature & feature) {
 
@@ -26,6 +25,7 @@ Label RandomTree::predict(Feature & feature) {
 		}
 	}
 }
+
 
 Frame RandomTree::predict(Frame & frame) {
 
@@ -127,15 +127,12 @@ std::vector<Label> RandomForest::predict(DataPtr data) {
 	return _tree_ensemble[0].predict(data);
 }
 
+Frame RandomForest::predict(Frame & frame) {
+	return _tree_ensemble[0].predict(frame);
+}
 
 void RandomForest::train(DataPtr data) {
-
-
 	RandomTree tree;
 	tree.train(data);
 	_tree_ensemble.push_back(tree);
-
-	std::ofstream file("tree.dat", std::ios::binary);
-	cereal::BinaryOutputArchive ar(file);
-	ar(tree);
 }

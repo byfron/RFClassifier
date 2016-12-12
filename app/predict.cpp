@@ -5,12 +5,18 @@
 
 int main(int argc, char **argv) {
 
-	std::ifstream file("tree.dat");
-	cereal::BinaryInputArchive ar(file);
-	RandomTree tree;
-	tree.serialize<cereal::BinaryInputArchive>(ar);
+	char * input_file = getCmdOption(argv, argv + argc, "-i");
 
-	std::cout << "Loaded tree with " << tree.getNumNodes() << " nodes." << std::endl;
+	if (!input_file) {
+		std::cout << "Usage: ./predict -i <forest_input_file>" << std::endl;
+	}
+
+	std::ifstream file(input_file);
+	cereal::BinaryInputArchive ar(file);
+	RandomForest forest;
+	forest.serialize<cereal::BinaryInputArchive>(ar);
+
+//	std::cout << "Loaded forest with " << tree.getNumNodes() << " nodes." << std::endl;
 
 	int num_seq = 1;
 	int num_im = 7;
@@ -34,7 +40,7 @@ int main(int argc, char **argv) {
 
 	Frame test_frame(path_depth, path_gt);
 
-	Frame output = tree.predict(test_frame);
+	Frame output = forest.predict(test_frame);
 
 	output.show();
 

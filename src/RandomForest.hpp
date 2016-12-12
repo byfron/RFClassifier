@@ -27,7 +27,7 @@ public:
 	size_t getNumNodes() {
 		return _nodes.size();
 	}
-	
+
 private:
 
 	std::vector<Node> _nodes;
@@ -38,7 +38,14 @@ class RandomForest
 
 public:
 	std::vector<Label> predict(DataPtr);
+	Frame predict(Frame & frame);
 	void train(DataPtr);
+
+	template<class Archive>
+	void serialize(Archive & archive)
+	{
+		archive(_tree_ensemble);
+	}
 
 private:
 

@@ -1,13 +1,17 @@
 #pragma once
 #include <opencv2/opencv.hpp>
 #include <random>
+#include <algorithm>
 
 #define MAIN_DB_PATH "DB_PATH"
-#define INF 1000000//std::numeric_limits<float>::max()
+#define INF std::numeric_limits<float>::max()
 
+/// Data types
 typedef cv::Vec<uchar,3> color;
 typedef uint8_t Label;
 
+
+/// Algorithm settings
 class Settings {
 public:
 	static int num_trees;
@@ -21,8 +25,28 @@ public:
 	static int num_labels;
 };
 
-static inline float
-fastlog2 (float x)
+
+/// Command argument utils
+static inline
+char* getCmdOption(char ** begin, char ** end, const std::string & option)
+{
+    char ** itr = std::find(begin, end, option);
+    if (itr != end && ++itr != end)
+    {
+        return *itr;
+    }
+    return 0;
+}
+
+static inline
+bool cmdOptionExists(char** begin, char** end, const std::string& option)
+{
+    return std::find(begin, end, option) != end;
+}
+
+/// Math utils
+static inline
+float fastlog2 (float x)
 {
   union { float f; uint32_t i; } vx = { x };
   union { uint32_t i; float f; } mx = { (vx.i & 0x007FFFFF) | 0x3f000000 };
@@ -34,8 +58,8 @@ fastlog2 (float x)
            - 1.72587999f / (0.3520887068f + mx.f);
 }
 
-static inline float
-fastlog (float x)
+static inline
+float fastlog (float x)
 {
   return 0.69314718f * fastlog2 (x);
 }

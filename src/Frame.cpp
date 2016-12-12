@@ -96,7 +96,7 @@ std::vector<color> color_map =  {
 
 
 		} while (frame.getLabel(row, col) == (int)Labels::Background);
-		//TODO: Is Background=0 the correct bg label?
+		//TODO: Is Background=0 the correct bg label? NO!!!
 	}
 }
 
@@ -120,6 +120,8 @@ void Feature::evaluate(const LearnerParameters & params) {
 	//TODO: Make sure that the offset size makes sense
 
 	//If offset is outside the image project it back
+	//TODO: I should not project the offset if I don't change the learner.
+	//I should just take the max distance if it projects outside the image
 	int row = std::min(std::max(0, _row + int(params.offset_1[0]/z)),
 			   im->getImageSize().height);
 	int col = std::min(std::max(0, _col + int(params.offset_1[1]/z)),
@@ -141,7 +143,7 @@ void Feature::evaluate(const LearnerParameters & params) {
 //	std::cout << _value << "." << std::endl;
 }
 
-void FramePool::create() {
+void FramePool::create(float max_size) {
 
 	std::string main_db_path = getenv(MAIN_DB_PATH);
 	int max_images_per_cam = 1000;
@@ -152,7 +154,6 @@ void FramePool::create() {
 	std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
 
 	float size = 0;
-	float max_size = 0.001;//1.5; //1.5 gigs
 	int num_seq = 1;
 	int num_im = 1;
 	int num_cam = 1;
