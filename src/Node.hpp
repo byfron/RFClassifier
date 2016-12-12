@@ -133,7 +133,8 @@ public:
 			_node_params,
 			_threshold,
 			_depth,
-			_is_leaf);
+			_is_leaf,
+			_label);
 	}
 
 	size_t left_child;
