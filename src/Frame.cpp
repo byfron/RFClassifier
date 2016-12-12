@@ -98,6 +98,11 @@ std::vector<color> color_map =  {
 		} while (frame.getLabel(row, col) == (int)Labels::Background);
 		//TODO: Is Background=0 the correct bg label? NO!!!
 	}
+
+	inline bool outsideFrame(int row, int col, const Frame *im) {
+		return row < 0 || row > im->getImageSize().height-1 ||
+			col < 0 || col > im->getImageSize().width-1;
+	}
 }
 
 Feature::Feature(int row, int col, Label label, const Frame *image) :
@@ -119,22 +124,27 @@ void Feature::evaluate(const LearnerParameters & params) {
 
 	//TODO: Make sure that the offset size makes sense
 
-	//If offset is outside the image project it back
-	//TODO: I should not project the offset if I don't change the learner.
-	//I should just take the max distance if it projects outside the image
-	int row = std::min(std::max(0, _row + int(params.offset_1[0]/z)),
-			   im->getImageSize().height-1);
-	int col = std::min(std::max(0, _col + int(params.offset_1[1]/z)),
-			   im->getImageSize().width-1);
+	int row = _row + int(params.offset_1[0]/z);
+	int col = _col + int(params.offset_1[1]/z);
 
-	_value = im->operator()(row, col);
+	if (FrameUtils::outsideFrame(row, col, im)) {
+		_value = MAX_DEPTH;
+	}
+	else {
+		_value = im->operator()(row, col);
+	}
 
 	if (!params.is_unary) {
-		row = std::min(std::max(0, _row + int(params.offset_2[0]/z)),
-			       im->getImageSize().height-1);
-		col = std::min(std::max(0, _col + int(params.offset_2[1]/z)),
-			       im->getImageSize().width-1);
-		z = im->operator()(row, col);
+
+		row = _row + int(params.offset_2[0]/z);
+		col = _col + int(params.offset_2[1]/z);
+
+		if (FrameUtils::outsideFrame(row, col, im)) {
+			z = MAX_DEPTH;
+		}
+		else {
+			z = im->operator()(row, col);
+		}
 	}
 
 	_value -= z;

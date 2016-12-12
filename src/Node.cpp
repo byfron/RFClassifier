@@ -82,8 +82,8 @@ void Node::train(DataSplit ds) {
 	// Evaluate all features with each set of parameters
 	for (auto learner : sampled_learners) {
 
-//		#pragma omp parallel for
-		for (FeatureIterator it = ds.start; it != ds.end; it++) {
+		#pragma omp parallel for
+		for (FeatureIterator it = ds.start; it < ds.end; it++) {
 			it->evaluate(learner);
 		}
 
