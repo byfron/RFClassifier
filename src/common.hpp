@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #define MAIN_DB_PATH "DB_PATH"
-#define INF 100000000 //std::numeric_limits<float>::max()
+#define INF std::numeric_limits<float>::max()
 #define MAX_DEPTH 10000
 
 /// Data types
@@ -25,7 +25,6 @@ public:
 	static int offset_box_size;
 	static int num_labels;
 };
-
 
 /// Command argument utils
 static inline
