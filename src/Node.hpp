@@ -70,7 +70,8 @@ public:
 			hist[i] = 0.0;
 
 		const float normalised_bin = 1./(ds.end - ds.start);
-		for (FeatureIterator it = ds.start; it != ds.end; it++) {
+
+		for (FeatureIterator it = ds.start; it < ds.end; it++) {
 			hist[it->getLabel()]+=normalised_bin;
 		}
 

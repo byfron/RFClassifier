@@ -6,6 +6,8 @@ namespace {
 	FeatureIterator computeSplitIterator(DataSplit ds, float threshold) {
 
 		FeatureIterator it = ds.start;
+
+//#pragma omp parallel for TODO: instead of breaking compute the histograms/entropies directly here?
 		for (;it != ds.end; it++) {
 			if (it->getValue() > threshold)
 				break;
@@ -80,7 +82,8 @@ void Node::train(DataSplit ds) {
 	// Evaluate all features with each set of parameters
 	for (auto learner : sampled_learners) {
 
-		for (FeatureIterator it = ds.start; it != ds.end; it++) {
+		#pragma omp parallel for
+		for (FeatureIterator it = ds.start; it < ds.end; it++) {
 			it->evaluate(learner);
 		}
 		std::sort(ds.start, ds.end);
@@ -112,7 +115,8 @@ void Node::train(DataSplit ds) {
 
 	// sort data acoording to the best learner,
 	// so that we know where to split in the next children nodes
-	for (FeatureIterator it = ds.start; it != ds.end; it++) {
+	#pragma omp parallel for
+	for (FeatureIterator it = ds.start; it < ds.end; it++) {
 		it->evaluate(best_learner);
 	}
 	std::sort(ds.start, ds.end);
