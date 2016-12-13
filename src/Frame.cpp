@@ -271,7 +271,7 @@ void Frame::show() {
 
 	cv::Mat depth = (_depth/1.03 - 50)*255./(800.-50.);
 	depth.convertTo(depth, CV_8UC1);
-	cv::imshow("depth", depth);
+	cv::imshow("depth2", depth);
 
 	cv::Mat labels(_labels.size(), CV_8UC3);
 
@@ -283,7 +283,7 @@ void Frame::show() {
 	}
 
 	cv::imshow("labels", labels);
-	cv::waitKey(0);
+	cv::waitKey(1);
 }
 
 void Frame::computeForegroundFeatures(Data & features) {

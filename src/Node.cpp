@@ -150,8 +150,6 @@ bool Node::fallsToLeftChild(Feature & feat) const {
 FeatureIterator Node::getSplitIterator(DataSplit ds) const {
 
 	FeatureIterator it = computeSplitIterator(ds, _threshold);
-	std::cout << "thresh:" << _threshold << std::endl;
-	std::cout << "left split:" << ds.end - it << std::endl;
 	return it;
 }
 

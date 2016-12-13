@@ -28,14 +28,14 @@ namespace {
 //		FrameUtils::setBackgroundToMaxDepth(depth, depth > 200.);
 
 		cv::Mat bw_mask = depth > 200;
-		FrameUtils::setBackgroundToMaxDepth(depth, bw_mask);
+		FrameUtils::setBackgroundToMaxDepth(depth, 1 - bw_mask);
 
 		cv::Mat masked_depth = cv::Mat(depth.size(), CV_32FC1);
 		masked_depth.setTo(0);
 
 		depth.copyTo(masked_depth, 1 - bw_mask);
 
-		cv::imshow("depth", masked_depth);
+		cv::imshow("mask", masked_depth);
 		cv::waitKey(1);
 
 		f.setDepthImage(depth);
@@ -44,9 +44,9 @@ namespace {
 		std::vector<cv::Point2i> locations;
 		cv::findNonZero(depth > 200, locations);
 		cv::Mat labels(depth.size(), CV_8UC1);
-		labels.setTo(1);//(uchar)Labels::Background);
+		labels.setTo((uchar)Labels::Foreground);
 		for (auto p : locations) {
-			labels.at<uchar>(p) = 0;//(uchar)Labels::Foreground;
+			labels.at<uchar>(p) = (uchar)Labels::Background;
 		}
 
 
@@ -61,6 +61,7 @@ namespace {
 		// }
 
 		f.setLabelImage(labels);
+
 		return f;
 	}
 }
@@ -138,14 +139,13 @@ int main(int argc, char **argv) {
 		camera.capture(frame);
 
 		Frame f = convertToFrame(frame);
-		// f.show();
-		// std::cout << "running prediction" << std::endl;
-		// Frame output = forest.predict(f);
-		// std::cout << "DONE" << std::endl;
+//		f.show();
+		std::cout << "running prediction" << std::endl;
+		Frame output = forest.predict(f);
+		std::cout << "DONE" << std::endl;
 
-		// output.show();
+		output.show();
 
-//		cv::imshow("depth", f.getDepthImage());
-//		cv::waitKey(1);
+
 	}
 }

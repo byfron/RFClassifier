@@ -16,8 +16,6 @@ int main(int argc, char **argv) {
 	RandomForest forest;
 	forest.serialize<cereal::BinaryInputArchive>(ar);
 
-	forest.print();
-
 	int num_seq = 5;
 	int num_im = 7;
 	int num_camera = 2;

@@ -29,8 +29,6 @@ public:
 	DataSplit(DataPtr d,
 		  FeatureIterator s,
 		  FeatureIterator e) : data(d), start(s), end(e) {
-
-		//	std::cout << "Creating data split(" << end - start << ")" << std::endl;
 	}
 
 	int getSize() const {
