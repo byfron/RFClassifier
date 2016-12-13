@@ -71,7 +71,11 @@ public:
 		const float normalised_bin = 1./(ds.end - ds.start);
 
 		for (FeatureIterator it = ds.start; it < ds.end; it++) {
-			hist[it->getLabel()]+=normalised_bin;
+			hist[it->getLabel()]++;
+		}
+
+		for(int i = 0; i < Settings::num_labels; i++) {
+			hist[i] *= normalised_bin;
 		}
 
 		return hist;
@@ -84,8 +88,8 @@ public:
 		std::vector<float> & hist = createHistogram(ds);
 
 		for (int i = 0; i < Settings::num_labels; i++) {
-			if (hist[i] > 0) {
-				sum += hist[i]*log(hist[i]);
+			if (hist[i] > 0.) {
+				sum += hist[i]*logf(hist[i]);
 			}
 		}
 

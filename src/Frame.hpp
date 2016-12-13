@@ -64,7 +64,10 @@ public:
 	void show();
 	void computeForegroundFeatures(Data & features);
 
-	inline float operator()(int row, int col) const ;
+	inline float operator()(int row, int col) const {
+//		return _depth.ptr<float>(row) + col;
+		return _depth.at<float>(row, col);
+	}
 
 	inline void setLabel(int row, int col, Label value) {
 		_labels.at<uchar>(row, col) = (uchar)value;

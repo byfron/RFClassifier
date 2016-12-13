@@ -6,7 +6,7 @@ add_definitions(-std=c++11)
 find_package( OpenCV REQUIRED )
 find_package( OpenMP REQUIRED)
 
-set(CMAKE_CXX_FLAGS "-Ofast")
+set(CMAKE_CXX_FLAGS "-Ofast -march=native")
 
 if(OPENMP_FOUND)
 message("OPENMP FOUND")

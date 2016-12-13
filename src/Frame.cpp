@@ -140,14 +140,12 @@ void Feature::evaluate(const LearnerParameters & params) {
 		col = _col + int(params.offset_2[1]/z);
 
 		if (FrameUtils::outsideFrame(row, col, im)) {
-			z = MAX_DEPTH;
+			_value -= MAX_DEPTH;
 		}
 		else {
-			z = im->operator()(row, col);
+			_value -= im->operator()(row, col);
 		}
 	}
-
-	_value -= z;
 }
 
 void FramePool::create(float max_size) {
@@ -343,12 +341,5 @@ void Frame::load(std::string depth_path,
 		_depth.at<float>(p) = MAX_DEPTH;
 	}
 
-
-
-
 	_labels = FrameUtils::cropForeground(label_image, rgba[3]);
-}
-
-float Frame::operator()(int row, int col) const {
-	return _depth.at<float>(row, col);
 }

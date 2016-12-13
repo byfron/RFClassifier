@@ -35,7 +35,6 @@ Frame RandomTree::predict(Frame & frame) {
 
 	for (auto feature : features) {
 		Label l = predict(feature);
-		std::cout << (int)l << std::endl;
 		output.setLabel(feature.row(), feature.col(), l);
 	}
 	return output;

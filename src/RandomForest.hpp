@@ -47,6 +47,16 @@ public:
 		archive(_tree_ensemble);
 	}
 
+	void print() {
+
+		std::cout << "Forest has " << _tree_ensemble.size() << " trees with ";
+		for (auto tree : _tree_ensemble) {
+			std::cout << tree.getNumNodes() << " ";
+		}
+		std::cout << "nodes" << std::endl;
+
+	}
+
 private:
 
 	std::vector<RandomTree> _tree_ensemble;

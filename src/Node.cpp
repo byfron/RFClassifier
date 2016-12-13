@@ -26,11 +26,10 @@ namespace {
 
 	std::vector<LearnerParameters> sampleParameters() {
 
-		std::vector<LearnerParameters> param_vec;
+		std::vector<LearnerParameters> param_vec(Settings::num_offsets_per_pixel);
+		LearnerParameters param;
 
 		for (int i = 0; i < Settings::num_offsets_per_pixel; i++) {
-
-			LearnerParameters param;
 
 			//Sample offsets from a uniform distribution
 			sampleOffset(param.offset_1);
@@ -46,7 +45,7 @@ namespace {
 
 	std::vector<float> sampleThresholds(float min, float max) {
 
-		std::vector<float> thresh_vec;
+		std::vector<float> thresh_vec(Settings::num_thresholds_per_feature);
 		for (int i = 0; i < Settings::num_thresholds_per_feature; i++) {
 			thresh_vec.push_back(random_real(min, max));
 		}
