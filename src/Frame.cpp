@@ -103,6 +103,16 @@ std::vector<color> color_map =  {
 		return row < 0 || row > im->getImageSize().height-1 ||
 			col < 0 || col > im->getImageSize().width-1;
 	}
+
+
+	void setBackgroundToMaxDepth(cv::Mat & depth, const cv::Mat & mask) {
+		std::vector<cv::Point2i> locations;
+		cv::findNonZero(1 - mask, locations);
+
+		for (auto p : locations) {
+			depth.at<float>(p) = MAX_DEPTH;
+		}
+	}
 }
 
 Feature::Feature(int row, int col, Label label, const Frame *image) :
@@ -288,8 +298,6 @@ void Frame::computeForegroundFeatures(Data & features) {
 			}
 		}
 	}
-
-	getchar();
 }
 
 void Frame::load(std::string depth_path,
@@ -331,17 +339,11 @@ void Frame::load(std::string depth_path,
 	//Crop mask
 	cv::Mat cropped_mask = FrameUtils::cropForeground(fw_mask, fw_mask);
 
-	// Transform to centimeters
+	// Transform to centimetersa
 	depth.convertTo(_depth, CV_32FC1);
 	_depth = (_depth/255. * (800-50) + 50)*1.03;
 
-	// TODO:Set background to maximum value
-	std::vector<cv::Point2i> locations;
-	cv::findNonZero(1 - cropped_mask, locations);
-
-	for (auto p : locations) {
-		_depth.at<float>(p) = MAX_DEPTH;
-	}
+	FrameUtils::setBackgroundToMaxDepth(_depth, cropped_mask);
 
 
 

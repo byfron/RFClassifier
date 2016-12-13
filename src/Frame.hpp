@@ -7,9 +7,13 @@
 class LearnerParameters;
 class Frame;
 
+namespace FrameUtils {
+	void setBackgroundToMaxDepth(cv::Mat & depth, const cv::Mat & mask);
+}
+
 enum class Labels {
 	Background,
-	LeftShoulder
+	Foreground
 };
 
 class Feature {
@@ -44,6 +48,7 @@ typedef Data::iterator FeatureIterator;
 class Frame {
 public:
 
+	Frame() {}
 	Frame(std::string,std::string);
 
 	void load(std::string depth_path,
@@ -59,6 +64,14 @@ public:
 
 	inline const cv::Mat & getDepthImage() const {
 		return _depth;
+	}
+
+	inline void setDepthImage(cv::Mat depth) {
+		_depth = depth;
+	}
+
+	inline void setLabelImage(cv::Mat fw_mask) {
+		_labels = fw_mask;
 	}
 
 	void show();
