@@ -16,9 +16,9 @@ int main(int argc, char **argv) {
 	RandomForest forest;
 	forest.serialize<cereal::BinaryInputArchive>(ar);
 
-	int num_seq = 5;
-	int num_im = 7;
-	int num_camera = 2;
+	int num_seq = 25;
+	int num_im = 10;
+	int num_camera = 1;
 	int charbuffsize = 500;
 	std::string main_db_path = getenv(MAIN_DB_PATH);
 	std::unique_ptr<char[]> buf( new char[charbuffsize] );

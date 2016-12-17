@@ -32,13 +32,13 @@ int main(int argc, char **argv) {
 	ar(random_forest);
 
 	//Check result on traning
-	std::vector<Label> labels = random_forest.predict(data);
-	assert(labels.size() == data->size());
-	int idx = 0;
-	for (auto l : labels) {
-		std::cout << (int)l << "-" << (int)data->operator[](idx).getLabel() << std::endl;
-		idx++;
-	}
+	// std::vector<Label> labels = random_forest.predict(data);
+	// assert(labels.size() == data->size());
+	// int idx = 0;
+	// for (auto l : labels) {
+	// 	std::cout << (int)l << "-" << (int)data->operator[](idx).getLabel() << std::endl;
+	// 	idx++;
+	// }
 
 	return 0;
 }
