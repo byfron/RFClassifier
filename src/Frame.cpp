@@ -164,17 +164,20 @@ void FramePool::create(float max_size) {
 
 	std::string main_db_path = getenv(MAIN_DB_PATH);
 	int max_images_per_cam = 1000;
-	int max_sequences = 100;
+	int max_sequences = 175;
 	int max_cams = 3;
 	int charbuffsize = 500;
 
 	std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
 
-	float size = 0;
-	int num_seq = 1;
-	int num_im = 1;
-	int num_cam = 1;
+	static int num_seq = 1;
+	static int num_im = 1;
+	static int num_cam = 1;
+
 	int total_frames = 0;
+	float size = 0;
+
+
 
 	while(size <= max_size) {
 
@@ -191,6 +194,9 @@ void FramePool::create(float max_size) {
 			       num_seq, num_cam, num_im);
 
 		std::string path_gt(buf.get());
+
+		//TODO: check that images exist
+		std::cout << "Loading image " << buf.get() << std::endl;
 
 		Frame frame(path_depth, path_gt);
 
@@ -212,6 +218,7 @@ void FramePool::create(float max_size) {
 				else break;
 			}
 		}
+
 
 		size += bytesToGigabytes(frame.getFrameSizeInBytes());
 		total_frames++;
