@@ -177,7 +177,7 @@ void FramePool::create(float max_size) {
 	int total_frames = 0;
 	float size = 0;
 
-
+	FramePool::image_vector.clear();
 
 	while(size <= max_size) {
 
