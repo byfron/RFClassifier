@@ -123,11 +123,54 @@ void RandomTree::train(DataPtr data) {
 }
 
 std::vector<Label> RandomForest::predict(DataPtr data) {
-	return _tree_ensemble[0].predict(data);
+	for (int i = 0; i < _tree_ensemble.size(); i++) {
+		return _tree_ensemble[i].predict(data);
+	}
+}
+
+Frame RandomForest::majorityVoting(std::vector<Frame> frames) {
+
+	Frame majFrame = frames[0];
+	cv::Size size = majFrame.getImageSize();
+	cv::Mat best_labels = majFrame.getLabelImage();
+
+	for (int c = 0; c < size.height; c++) {
+		for (int r = 0; r < size.width; r++) {
+
+			Label maj_label = best_labels.at<uchar>(r,c);
+			std::vector<int> votes(Settings::num_labels, 0);
+			for (int f = 0; f < frames.size(); f++) {
+				cv::Mat labels = frames[f].getLabelImage();
+				int idx = (int)labels.at<uchar>(r,c);
+				votes[idx]++;
+			}
+
+			int max_votes = 0;
+			Label best_label = 0;
+			//find the majority vote
+			for (int idx = 0; idx < votes.size(); idx++) {
+				if (votes[idx] > max_votes) {
+					max_votes = votes[idx];
+					best_label = (Label)idx;
+				}
+			}
+
+			best_labels.at<uchar>(r,c) = best_label;
+		}
+	}
+
+	majFrame.setLabelImage(best_labels);
+	return majFrame;
+
 }
 
 Frame RandomForest::predict(Frame & frame) {
-	return _tree_ensemble[0].predict(frame);
+	std::vector<Frame> frame_predictions;
+	for (int i = 0; i < _tree_ensemble.size(); i++) {
+		frame_predictions.push_back(_tree_ensemble[i].predict(frame));
+	}
+
+	return RandomForest::majorityVoting(frame_predictions);
 }
 
 void RandomForest::train(DataPtr data) {

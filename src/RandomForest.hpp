@@ -37,6 +37,9 @@ class RandomForest
 {
 
 public:
+
+	static Frame majorityVoting(std::vector<Frame> frames);
+
 	std::vector<Label> predict(DataPtr);
 	Frame predict(Frame & frame);
 	void train(DataPtr);
