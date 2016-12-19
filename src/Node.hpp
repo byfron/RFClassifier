@@ -43,11 +43,10 @@ public:
 
 class LabelHistogram {
 public:
-	static inline Label getMostLikelyLabel(DataSplit & ds) {
+	static inline void getMostLikelyLabel(DataSplit & ds, Label & best_label, float & prob) {
 
 		std::vector<float> & hist = createHistogram(ds);
 
-		Label best_label;
 		float max_prob = 0.0;
 		for (int i = 0; i < hist.size(); i++) {
 			if (hist[i] > max_prob) {
@@ -56,7 +55,7 @@ public:
 			}
 		}
 
-		return best_label;
+		prob = max_prob/hist.size();
 	}
 
 	static inline std::vector<float> & createHistogram(DataSplit & ds) {
@@ -113,6 +112,7 @@ public:
 		_depth(depth),
 		_is_leaf(false),
 		_label(0),
+		_probability(0.0),
 		left_child(0),
 		right_child(0) {};
 
@@ -136,7 +136,8 @@ public:
 			_threshold,
 			_depth,
 			_is_leaf,
-			_label);
+			_label,
+			_probability);
 	}
 
 	size_t left_child;
@@ -149,4 +150,5 @@ private:
 	size_t _depth;
 	bool _is_leaf;
 	Label _label;
+	float _probability;
 };

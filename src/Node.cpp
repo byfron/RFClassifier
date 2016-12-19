@@ -67,7 +67,8 @@ void Node::train(DataSplit ds) {
 	// Check if we are finished (reached max depth)
 	if (_depth == Settings::max_tree_depth) {
 		_is_leaf = true;
-		_label = LabelHistogram::getMostLikelyLabel(ds);
+		LabelHistogram::getMostLikelyLabel(ds, _label, _probability);
+
 		return;
 	}
 
@@ -133,7 +134,7 @@ void Node::train(DataSplit ds) {
 	//if the best split leaves all nodes here, mark as leaf
 	if (split_it == ds.start ||
 	    split_it == ds.end) {
-		_label = LabelHistogram::getMostLikelyLabel(ds);
+		LabelHistogram::getMostLikelyLabel(ds, _label, _probability);
 		_is_leaf = true;
 	}
 
