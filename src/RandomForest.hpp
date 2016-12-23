@@ -21,7 +21,9 @@ public:
 	template<class Archive>
 	void serialize(Archive & archive)
 	{
-		archive(_nodes);
+		archive(_nodes,
+			_bg_mode);
+
 	}
 
 	size_t getNumNodes() {
@@ -31,6 +33,7 @@ public:
 private:
 
 	std::vector<Node> _nodes;
+	BackgroundMode _bg_mode;
 };
 
 class RandomForest
@@ -43,6 +46,10 @@ public:
 	std::vector<Label> predict(DataPtr);
 	Frame predict(Frame & frame);
 	void train(DataPtr);
+
+	void push_tree(const RandomTree & tree) {
+		_tree_ensemble.push_back(tree);
+	}
 
 	template<class Archive>
 	void serialize(Archive & archive)

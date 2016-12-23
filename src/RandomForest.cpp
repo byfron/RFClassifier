@@ -53,6 +53,8 @@ std::vector<Label> RandomTree::predict(DataPtr data) {
 
 void RandomTree::train(DataPtr data) {
 
+	_bg_mode = Settings::bmode;
+
 	_nodes.clear();
 	std::queue<NodeConstructor> queue;
 
@@ -175,6 +177,7 @@ Frame RandomForest::predict(Frame & frame) {
 
 void RandomForest::train(DataPtr data) {
 	//TODO: refactor timing
+
 	struct timespec start, finish;
 	clock_gettime(CLOCK_MONOTONIC, &start);
 
