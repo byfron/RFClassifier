@@ -103,7 +103,7 @@ class FramePool {
 public:
 
 	static void computeFeatures(DataPtr);
-	static void create(float);
+	static bool create(float);
 	static std::vector<Frame> image_vector;
 
 private:

@@ -1,6 +1,7 @@
 #include "Frame.hpp"
 #include "RandomForest.hpp"
 #include "RandomGenerator.hpp"
+#include <fstream>
 
 double bytesToGigabytes(long bytes)
 {
@@ -160,7 +161,13 @@ void Feature::evaluate(const LearnerParameters & params) {
 	_value -= z;
 }
 
-void FramePool::create(float max_size) {
+bool file_exist(const char *fileName)
+{
+    std::ifstream infile(fileName);
+    return infile.good();
+}
+
+bool FramePool::create(float max_size) {
 
 	std::string main_db_path = getenv(MAIN_DB_PATH);
 	int max_images_per_cam = 1000;
@@ -195,8 +202,11 @@ void FramePool::create(float max_size) {
 
 		std::string path_gt(buf.get());
 
-		//TODO: check that images exist
 		std::cout << "Loading image " << buf.get() << std::endl;
+		if (!file_exist(buf.get())) {
+			std::cout << "Error: " << buf.get() << " does not exist" << std::endl;
+			return false;
+		}
 
 		Frame frame(path_depth, path_gt);
 
@@ -225,28 +235,7 @@ void FramePool::create(float max_size) {
 		std::cout << "Total images: " << total_frames << " - Memory used:" << size << "G" << std::endl;
 	}
 
-	// max_sequences = 1;
-	// int num_images_per_seq = 256;
-	// int num_camera = 1;
-	// for (int num_seq = 1; num_seq <= max_sequences; num_seq++) {
-	// 	for (int num_im = 1; num_im < num_images_per_seq; num_im++) {
-	// 		std::snprintf( buf.get(), charbuffsize,
-	// 			       "%s/train/%d/images/depthRender/Cam%d/mayaProject.%06d.png",
-	// 			       main_db_path.c_str(),
-	// 			       num_seq, num_camera, num_im);
-
-	// 		std::string path_depth(buf.get());
-
-	// 		std::snprintf( buf.get(), charbuffsize,
-	// 			       "%s/train/%d/images/groundtruth/Cam%d/mayaProject.%06d.png",
-	// 			       main_db_path.c_str(),
-	// 			       num_seq, num_camera, num_im);
-
-	// 		std::string path_gt(buf.get());
-
-	// 		FramePool::image_vector.push_back(Frame(path_depth, path_gt));
-	// 	}
-	// }
+	return true;
 }
 
 void FramePool::computeFeatures(DataPtr features) {
@@ -351,9 +340,6 @@ void Frame::load(std::string depth_path,
 	_depth = (_depth/255. * (800-50) + 50)*1.03;
 
 	FrameUtils::setBackgroundToMaxDepth(_depth, cropped_mask);
-
-
-
 
 	_labels = FrameUtils::cropForeground(label_image, rgba[3]);
 }
