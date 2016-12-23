@@ -23,7 +23,15 @@ int main(int argc, char **argv) {
 		limit = atof(mem_limit);
 	}
 
-	RandomForest forest;
+	std::shared_ptr<RandomForest> forest = std::make_shared<RandomForest>();
+
+	std::vector<BackgroundMode> bg_modes = {
+		BackgroundMode::DEFAULT,
+		BackgroundMode::RANDOM_MIDRANGE,
+		BackgroundMode::DEFAULT,
+		BackgroundMode::RANDOM_LONGRANGE,
+		BackgroundMode::DEFAULT};
+
 
 	for (int i = 0; i < num_trees; i++) {
 
@@ -36,13 +44,15 @@ int main(int argc, char **argv) {
 			DataPtr data = std::make_shared<Data>();
 			FramePool::computeFeatures(data);
 
-			RandomTree tree;
-			tree.train(data);
+			Settings::bmode = bg_modes[i];
 
-			forest.push_tree(tree);
+			std::shared_ptr<RandomTree> tree = std::make_shared<RandomTree>();
+			tree->train(data);
+
+			forest->push_tree(*tree);
 
 			// save tree
-			tree.save(buf.get());
+			tree->save(buf.get());
 		}
 		else {
 			std::cout << "Can't create Frame Pool. Exiting..." << std::endl;
@@ -50,9 +60,10 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	//save whole forest
 	std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
 	std::snprintf( buf.get(), charbuffsize, "forest_%s", output_file);
-	forest.save(buf.get());
+	forest->save(buf.get());
 
 	return 0;
 }

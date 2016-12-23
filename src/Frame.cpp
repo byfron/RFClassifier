@@ -8,7 +8,7 @@ double bytesToGigabytes(long bytes)
 	return bytes * 9.31322574615479e-10;
 }
 
-std::vector<Frame> FramePool::image_vector = std::vector<Frame>();
+std::vector<FramePtr> FramePool::image_vector = std::vector<FramePtr>();
 
 namespace FrameUtils{
 
@@ -85,10 +85,10 @@ std::vector<color> color_map =  {
 		return im(ROI);
 	}
 
-	void sampleFromForeground(const Frame & frame, int & row, int & col) {
+	void sampleFromForeground(const FramePtr frame, int & row, int & col) {
 
 		int sampled = 0;
-		cv::Size size = frame.getImageSize();
+		cv::Size size = frame->getImageSize();
 
 		do {
 			//generate row
@@ -96,11 +96,11 @@ std::vector<color> color_map =  {
 			col = random_int(0, size.width);
 
 
-		} while (frame.getLabel(row, col) == (int)Labels::Background);
+		} while (frame->getLabel(row, col) == (int)Labels::Background);
 		//TODO: Is Background=0 the correct bg label? NO!!!
 	}
 
-	inline bool outsideFrame(int row, int col, const Frame *im) {
+	inline bool outsideFrame(int row, int col, ConstFramePtr im) {
 		return row < 0 || row > im->getImageSize().height-1 ||
 			col < 0 || col > im->getImageSize().width-1;
 	}
@@ -138,7 +138,7 @@ std::vector<color> color_map =  {
 	}
 }
 
-Feature::Feature(int row, int col, Label label, const Frame *image) :
+Feature::Feature(int row, int col, Label label, ConstFramePtr image) :
 	_row(row)
 	, _col(col)
 	, _label(label)
@@ -146,13 +146,13 @@ Feature::Feature(int row, int col, Label label, const Frame *image) :
 	,_image(image) {
 }
 
-const Frame *Feature::getFrame() const {
+ConstFramePtr Feature::getFrame() const {
 	return _image;
 }
 
 void Feature::evaluate(const LearnerParameters & params) {
 
-	const Frame *im = getFrame();
+	ConstFramePtr im = getFrame();
 	float z = im->operator()(_row, _col);
 
 	//TODO: Make sure that the offset size makes sense
@@ -230,7 +230,7 @@ bool FramePool::create(float max_size) {
 			return false;
 		}
 
-		Frame frame(path_depth, path_gt);
+		FramePtr frame = std::make_shared<Frame>(path_depth, path_gt);
 
 		FramePool::image_vector.push_back(frame);
 
@@ -252,7 +252,7 @@ bool FramePool::create(float max_size) {
 		}
 
 
-		size += bytesToGigabytes(frame.getFrameSizeInBytes());
+		size += bytesToGigabytes(frame->getFrameSizeInBytes());
 		total_frames++;
 		std::cout << "Total images: " << total_frames << " - Memory used:" << size << "G" << std::endl;
 	}
@@ -272,9 +272,9 @@ void FramePool::computeFeatures(DataPtr features) {
 
 		for (int i = 0; i < Settings::num_pixels_per_image; i++) {
 
-			Frame & image = FramePool::image_vector[im_id];
+			FramePtr image = FramePool::image_vector[im_id];
 			FrameUtils::sampleFromForeground(image, row, col);
-			features->operator[](idx) = Feature(row, col, image.getLabel(row, col), &image);
+			features->operator[](idx) = Feature(row, col, image->getLabel(row, col), image);
 			idx++;
 		}
 	}
@@ -312,7 +312,7 @@ void Frame::computeForegroundFeatures(Data & features) {
 		for (int col = 0; col < s.width; col++) {
 			Label l = getLabel(row, col);
 			if (l != (int)Labels::Background) {
-				features.push_back(Feature(row, col, l, this));
+				features.push_back(Feature(row, col, l, shared_from_this()));
 			}
 		}
 	}

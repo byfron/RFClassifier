@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 class LearnerParameters;
-class Frame;
+class Feature;
 
 namespace FrameUtils {
 	void setBackgroundToMaxDepth(cv::Mat & depth, const cv::Mat & mask);
@@ -16,36 +16,13 @@ enum class Labels {
 	Foreground
 };
 
-class Feature {
-public:
-	Feature() {}
-	Feature(int row, int col, Label label, const Frame* im);
-	void evaluate(const LearnerParameters & params);
-
-	inline bool operator< (const Feature& f) const {
-		return _value < f._value;
-	}
-
-	inline const Frame *getFrame() const;
-	inline const float & getValue() { return _value; }
-	inline const Label & getLabel() { return _label; }
-	inline const int row() { return _row; }
-	inline const int col() { return _col; }
-
-private:
-	int _row;
-	int _col;
-	Label _label;
-	float _value;
-	const Frame* _image;
-};
 
 typedef std::vector<Feature> Data;
 typedef std::shared_ptr<Data> DataPtr;
 typedef Data::iterator FeatureIterator;
 
 
-class Frame {
+class Frame : public std::enable_shared_from_this<Frame>{
 public:
 
 	Frame() {}
@@ -99,12 +76,39 @@ private:
 	cv::Mat _labels;
 };
 
+typedef std::shared_ptr<Frame> FramePtr;
+typedef std::shared_ptr<const Frame> ConstFramePtr;
+
+class Feature {
+public:
+	Feature() {}
+	Feature(int row, int col, Label label, ConstFramePtr im);
+	void evaluate(const LearnerParameters & params);
+
+	inline bool operator< (const Feature& f) const {
+		return _value < f._value;
+	}
+
+	inline ConstFramePtr getFrame() const;
+	inline const float & getValue() { return _value; }
+	inline const Label & getLabel() { return _label; }
+	inline const int row() { return _row; }
+	inline const int col() { return _col; }
+
+private:
+	int _row;
+	int _col;
+	Label _label;
+	float _value;
+	ConstFramePtr _image;
+};
+
 class FramePool {
 public:
 
 	static void computeFeatures(DataPtr);
 	static bool create(float);
-	static std::vector<Frame> image_vector;
+	static std::vector<FramePtr> image_vector;
 
 private:
 

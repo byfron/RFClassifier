@@ -181,15 +181,15 @@ void RandomForest::train(DataPtr data) {
 	struct timespec start, finish;
 	clock_gettime(CLOCK_MONOTONIC, &start);
 
-	RandomTree tree;
-	tree.train(data);
-	_tree_ensemble.push_back(tree);
+	std::shared_ptr<RandomTree> tree = std::make_shared<RandomTree>();
+	tree->train(data);
+	_tree_ensemble.push_back(*tree);
 
 	clock_gettime(CLOCK_MONOTONIC, &finish);
 	double elapsed;
 	elapsed = (finish.tv_sec - start.tv_sec);
 	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
-	std::cout << ">> Finished training tree of " << tree.getNumNodes() <<
+	std::cout << ">> Finished training tree of " << tree->getNumNodes() <<
 		" in " << elapsed << " seconds." << std::endl;
 }
