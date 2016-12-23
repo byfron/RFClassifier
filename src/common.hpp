@@ -11,11 +11,14 @@
 typedef cv::Vec<uchar,3> color;
 typedef uint8_t Label;
 
-
+/// We have different ways of generating background depth
+/// The original paper assigns a fixed (large) constant depth
+/// We try to generate different random depths in different trees
+/// to synthetically generate more realistic background features
 enum class BackgroundMode {
-	DEFAULT, //10 meters
-	RANDOM_MIDRANGE, // 0.5-2.0 meters
-	RANDOM_LONGRANGE //0.01 - 1 meters (1 cm to 0.5 meters)
+	DEFAULT, //10 meters in all cases
+	RANDOM_MIDRANGE, // random 0.5-2.0 meters
+	RANDOM_LONGRANGE // random 0.05 - 0.5 meters
 };
 
 struct Range {
