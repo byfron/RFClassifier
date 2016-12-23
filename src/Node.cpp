@@ -55,6 +55,8 @@ namespace {
 	}
 }
 
+int Node::leaf_counter = -1;
+
 void Node::train(DataSplit ds) {
 
 	assert(ds.getSize() > 0);
@@ -66,9 +68,8 @@ void Node::train(DataSplit ds) {
 
 	// Check if we are finished (reached max depth)
 	if (_depth == Settings::max_tree_depth) {
-		_is_leaf = true;
 		LabelHistogram::getMostLikelyLabel(ds, _label, _probability);
-
+		_leaf_id = ++Node::leaf_counter;
 		return;
 	}
 
@@ -135,7 +136,7 @@ void Node::train(DataSplit ds) {
 	if (split_it == ds.start ||
 	    split_it == ds.end) {
 		LabelHistogram::getMostLikelyLabel(ds, _label, _probability);
-		_is_leaf = true;
+		_leaf_id = ++Node::leaf_counter;
 	}
 
 }

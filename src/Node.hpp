@@ -106,13 +106,15 @@ class Node
 {
 public:
 
+	static int leaf_counter;
+
 	Node() {}
 	Node(size_t depth) :
 		_threshold(0.0),
 		_depth(depth),
-		_is_leaf(false),
 		_label(0),
 		_probability(0.0),
+		_leaf_id(-1),
 		left_child(0),
 		right_child(0) {};
 
@@ -124,7 +126,7 @@ public:
 	FeatureIterator getSplitIterator(DataSplit) const;
 
 	bool fallsToLeftChild(Feature & feat) const;
-	bool isLeaf() const { return _is_leaf; }
+	bool isLeaf() const { return _leaf_id > -1; }
 	Label getLabel() const { return _label; }
 
 	template <class Archive>
@@ -135,7 +137,7 @@ public:
 			_node_params,
 			_threshold,
 			_depth,
-			_is_leaf,
+			_leaf_id,
 			_label,
 			_probability);
 	}
@@ -148,7 +150,7 @@ private:
 	LearnerParameters _node_params;
 	float _threshold;
 	size_t _depth;
-	bool _is_leaf;
 	Label _label;
 	float _probability;
+	int _leaf_id;
 };
