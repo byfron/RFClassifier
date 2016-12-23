@@ -105,13 +105,35 @@ std::vector<color> color_map =  {
 			col < 0 || col > im->getImageSize().width-1;
 	}
 
+	float getOutsideOfFrameDepth() {
+		switch(Settings::bmode) {
+
+		case BackgroundMode::DEFAULT:
+			return MAX_DEPTH;
+			break;
+
+		case BackgroundMode::RANDOM_MIDRANGE:
+			//random uniform in range
+			return random_real_in_range(Settings::bg_mid_range);
+			break;
+
+		case BackgroundMode::RANDOM_LONGRANGE:
+			return random_real_in_range(Settings::bg_long_range);
+			break;
+
+		default:
+			return MAX_DEPTH;
+		}
+	}
 
 	void setBackgroundToMaxDepth(cv::Mat & depth, const cv::Mat & mask) {
 		std::vector<cv::Point2i> locations;
 		cv::findNonZero(1 - mask, locations);
+		float value;
+
 
 		for (auto p : locations) {
-			depth.at<float>(p) = MAX_DEPTH;
+			depth.at<float>(p) = value;
 		}
 	}
 }
@@ -139,7 +161,7 @@ void Feature::evaluate(const LearnerParameters & params) {
 	int col = _col + int(params.offset_1[1]/z);
 
 	if (FrameUtils::outsideFrame(row, col, im)) {
-		_value = MAX_DEPTH;
+		_value = FrameUtils::getOutsideOfFrameDepth();
 	}
 	else {
 		_value = im->operator()(row, col);
@@ -151,7 +173,7 @@ void Feature::evaluate(const LearnerParameters & params) {
 		col = _col + int(params.offset_2[1]/z);
 
 		if (FrameUtils::outsideFrame(row, col, im)) {
-			z = MAX_DEPTH;
+			z = FrameUtils::getOutsideOfFrameDepth();
 		}
 		else {
 			z = im->operator()(row, col);

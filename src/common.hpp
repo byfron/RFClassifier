@@ -5,12 +5,24 @@
 
 #define MAIN_DB_PATH "DB_PATH"
 #define INF std::numeric_limits<float>::max()
-#define MAX_DEPTH 10000
+#define MAX_DEPTH 1000 //max depth: 10 meters
 
 /// Data types
 typedef cv::Vec<uchar,3> color;
 typedef uint8_t Label;
 
+
+enum class BackgroundMode {
+	DEFAULT, //10 meters
+	RANDOM_MIDRANGE, // 0.5-2.0 meters
+	RANDOM_LONGRANGE //0.01 - 1 meters (1 cm to 0.5 meters)
+};
+
+struct Range {
+	Range(float mi, float ma) : min(mi), max(ma) {}
+	float min;
+	float max;
+};
 
 /// Algorithm settings
 class Settings {
@@ -24,6 +36,9 @@ public:
 	static float maximum_depth_difference;
 	static int offset_box_size;
 	static int num_labels;
+	static BackgroundMode bmode;
+	static Range bg_mid_range;
+	static Range bg_long_range;
 };
 
 /// Command argument utils
