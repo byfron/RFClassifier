@@ -23,43 +23,36 @@ int main(int argc, char **argv) {
 		limit = atof(mem_limit);
 	}
 
+	RandomForest forest;
+
 	for (int i = 0; i < num_trees; i++) {
 
 		std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
 		std::snprintf( buf.get(), charbuffsize, "tree_%02d_%s", i, output_file);
 
 		// Load training
-		FramePool::create(limit);
+		if (FramePool::create(limit)) {
 
-		DataPtr data = std::make_shared<Data>();
-		FramePool::computeFeatures(data);
+			DataPtr data = std::make_shared<Data>();
+			FramePool::computeFeatures(data);
 
-		RandomTree tree;
-		tree.train(data);
+			RandomTree tree;
+			tree.train(data);
 
+			forest.push_tree(tree);
 
-		// save tree
-		std::ofstream file(buf.get(), std::ios::binary);
-		cereal::BinaryOutputArchive ar(file);
-		ar(tree);
+			// save tree
+			tree.save(buf.get());
+		}
+		else {
+			std::cout << "Can't create Frame Pool. Exiting..." << std::endl;
+			return -1;
+		}
 	}
 
-	// // Train forest
-	// RandomForest random_forest;
-	// random_forest.train(data);
-
-	// std::ofstream file(output_file, std::ios::binary);
-	// cereal::BinaryOutputArchive ar(file);
-	// ar(random_forest);
-
-	//Check result on traning
-	// std::vector<Label> labels = random_forest.predict(data);
-	// assert(labels.size() == data->size());
-	// int idx = 0;
-	// for (auto l : labels) {
-	// 	std::cout << (int)l << "-" << (int)data->operator[](idx).getLabel() << std::endl;
-	// 	idx++;
-	// }
+	std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
+	std::snprintf( buf.get(), charbuffsize, "forest_%s", output_file);
+	forest.save(buf.get());
 
 	return 0;
 }

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/vector.hpp>
+#include <fstream>
 
 class RandomTree
 {
@@ -30,6 +31,12 @@ public:
 		return _nodes.size();
 	}
 
+	void save(const std::string & file) {
+		std::ofstream buf(file, std::ios::binary);
+		cereal::BinaryOutputArchive ar(buf);
+		ar(*this);
+	}
+
 private:
 
 	std::vector<Node> _nodes;
@@ -49,6 +56,12 @@ public:
 
 	void push_tree(const RandomTree & tree) {
 		_tree_ensemble.push_back(tree);
+	}
+
+	void save(const std::string & file) {
+		std::ofstream buf(file, std::ios::binary);
+		cereal::BinaryOutputArchive ar(buf);
+		ar(*this);
 	}
 
 	template<class Archive>
