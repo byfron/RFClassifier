@@ -7,20 +7,14 @@
 class LearnerParameters;
 class Feature;
 
-namespace FrameUtils {
-	void setBackgroundToMaxDepth(cv::Mat & depth, const cv::Mat & mask);
-}
-
-enum class Labels {
-	Background,
-	Foreground
+enum Labels {
+	Background = 255,
+	Foreground = 0
 };
-
 
 typedef std::vector<Feature> Data;
 typedef std::shared_ptr<Data> DataPtr;
 typedef Data::iterator FeatureIterator;
-
 
 class Frame : public std::enable_shared_from_this<Frame>{
 public:
@@ -54,7 +48,13 @@ public:
 	void show();
 	void computeForegroundFeatures(Data & features);
 
-	inline float operator()(int row, int col) const ;
+	inline bool inForeground(int row, int col) const {
+	        return (int)_labels.at<uchar>(row,col) != (int)Labels::Background;
+	}
+
+	inline float operator()(int row, int col) const {
+		return _depth.at<float>(row, col);
+	}
 
 	inline void setLabel(int row, int col, Label value) {
 		_labels.at<uchar>(row, col) = (uchar)value;
@@ -78,6 +78,13 @@ private:
 
 typedef std::shared_ptr<Frame> FramePtr;
 typedef std::shared_ptr<const Frame> ConstFramePtr;
+
+
+namespace FrameUtils {
+	void setBackgroundToMaxDepth(cv::Mat & depth, const cv::Mat & mask);
+	void sampleFromForeground(const FramePtr frame, int & row, int & col);
+}
+
 
 class Feature {
 public:

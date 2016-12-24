@@ -92,12 +92,12 @@ std::vector<color> color_map =  {
 
 		do {
 			//generate row
-			row = random_int(0, size.height);
-			col = random_int(0, size.width);
+			row = random_int(0, size.height-1);
+			col = random_int(0, size.width-1);
 
 
-		} while (frame->getLabel(row, col) == (int)Labels::Background);
-		//TODO: Is Background=0 the correct bg label? NO!!!
+		} while (frame->getLabel(row, col) == Background);
+		assert(frame->operator()(row,col) != 0);
 	}
 
 	inline bool outsideFrame(int row, int col, ConstFramePtr im) {
@@ -129,11 +129,8 @@ std::vector<color> color_map =  {
 	void setBackgroundToMaxDepth(cv::Mat & depth, const cv::Mat & mask) {
 		std::vector<cv::Point2i> locations;
 		cv::findNonZero(1 - mask, locations);
-		float value;
-
-
 		for (auto p : locations) {
-			depth.at<float>(p) = value;
+			depth.at<float>(p) = getOutsideOfFrameDepth();
 		}
 	}
 }
@@ -155,7 +152,7 @@ void Feature::evaluate(const LearnerParameters & params) {
 	ConstFramePtr im = getFrame();
 	float z = im->operator()(_row, _col);
 
-	//TODO: Make sure that the offset size makes sense
+	assert(z != 0);
 
 	int row = _row + int(params.offset_1[0]/z);
 	int col = _col + int(params.offset_1[1]/z);
@@ -311,7 +308,7 @@ void Frame::computeForegroundFeatures(Data & features) {
 	for (int row = 0; row < s.height; row++) {
 		for (int col = 0; col < s.width; col++) {
 			Label l = getLabel(row, col);
-			if (l != (int)Labels::Background) {
+			if (l != Background) {
 				features.push_back(Feature(row, col, l, shared_from_this()));
 			}
 		}
@@ -327,7 +324,9 @@ void Frame::load(std::string depth_path,
 	cv::Mat rgba[4];
 	cv::split(gt_image, rgba);
 
-	cv::Mat fw_mask = rgba[3] > 0;
+	cv::Mat fw_mask = cv::Mat(gt_image.size(), CV_8UC1);
+	fw_mask.setTo(0);
+	fw_mask.setTo(1,rgba[3] > 0);
 
 	int num_labels = FrameUtils::color_map.size();
 
@@ -340,13 +339,14 @@ void Frame::load(std::string depth_path,
 			(abs(rgba[2] - FrameUtils::color_map[label][0]) < 3) &
 			fw_mask;
 
-		std::vector<cv::Point2i> locations;
-		int count = countNonZero(Labels);
-		if (count > 0)
-			cv::findNonZero(Labels, locations);
-
-		for (auto p : locations) {
-			label_image.at<uchar>(p) = label;
+		cv::Size s = label_image.size();
+		for (int row = 0; row < s.height; row++) {
+			for (int col = 0; col < s.width; col++) {
+				if ((int)fw_mask.at<uchar>(row,col) == 0)
+					label_image.at<uchar>(row,col) = Background;
+				else
+					label_image.at<uchar>(row,col) = label;
+			}
 		}
 	}
 
@@ -354,18 +354,21 @@ void Frame::load(std::string depth_path,
 	cv::Mat depth = FrameUtils::cropForeground(
 		cv::imread(depth_path, CV_LOAD_IMAGE_GRAYSCALE), rgba[3]);
 
-	//Crop mask
+	// Crop mask
 	cv::Mat cropped_mask = FrameUtils::cropForeground(fw_mask, fw_mask);
 
 	// Transform to centimetersa
 	depth.convertTo(_depth, CV_32FC1);
 	_depth = (_depth/255. * (800-50) + 50)*1.03;
 
+
+	// zero depth?
+	cv::Size s = _depth.size();
+	for (int row = 0; row < s.height; row++)
+		for (int col = 0; col < s.width; col++)
+			assert(_depth.at<float>(row,col) > 0);
+
+
 	FrameUtils::setBackgroundToMaxDepth(_depth, cropped_mask);
-
 	_labels = FrameUtils::cropForeground(label_image, rgba[3]);
-}
-
-float Frame::operator()(int row, int col) const {
-	return _depth.at<float>(row, col);
 }
