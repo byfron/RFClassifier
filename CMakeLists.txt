@@ -8,6 +8,8 @@ find_package( OpenMP REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-Ofast")
 
+add_definitions(-DDATA_FOLDER="${CMAKE_SOURCE_DIR}/data")
+
 if(OPENMP_FOUND)
 message("OPENMP FOUND")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")

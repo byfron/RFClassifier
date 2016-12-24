@@ -7,7 +7,7 @@ set(the_target test.testbin)
 set(test_args --gtest_shuffle)
 
 add_executable(${the_target} EXCLUDE_FROM_ALL ${test_srcs})
-target_link_libraries(${the_target} test_main gtest)
+target_link_libraries(${the_target} test_main gtest RandomForest)
 
 add_custom_target(test COMMAND ${the_target} ${test_args}
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
