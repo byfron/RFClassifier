@@ -8,6 +8,7 @@ typedef std::vector<Feature> Data;
 typedef std::shared_ptr<Data> DataPtr;
 typedef Data::iterator FeatureIterator;
 
+
 struct LearnerParameters {
 	bool is_unary;
 	float offset_1[2];
@@ -154,3 +155,10 @@ private:
 	float _probability;
 	int _leaf_id;
 };
+
+
+/// Interface exposed for testing
+FeatureIterator computeSplitIterator(DataSplit ds, float threshold);
+void sampleOffset(float * offset);
+std::vector<LearnerParameters> sampleParameters();
+std::vector<float> sampleThresholds(float min, float max);

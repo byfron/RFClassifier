@@ -1,58 +1,56 @@
 #include "Node.hpp"
 #include <time.h>
 
-namespace {
 
-	FeatureIterator computeSplitIterator(DataSplit ds, float threshold) {
+FeatureIterator computeSplitIterator(DataSplit ds, float threshold) {
 
-		FeatureIterator it = ds.start;
+	FeatureIterator it = ds.start;
 
 //#pragma omp parallel for TODO: instead of breaking compute the histograms/entropies directly here?
-		for (;it != ds.end; it++) {
-			if (it->getValue() > threshold)
-				break;
-		}
-
-		return it;
+	for (;it != ds.end; it++) {
+		if (it->getValue() > threshold)
+			break;
 	}
 
-	void sampleOffset(float * offset) {
+	return it;
+}
 
-		offset[0] = Settings::offset_box_size*2*random_real(0.0,1.0) -
-				Settings::offset_box_size/2;
-		offset[1] = Settings::offset_box_size*2*random_real(0.0,1.0) -
-				Settings::offset_box_size/2;
+void sampleOffset(float * offset) {
+
+	offset[0] = Settings::offset_box_size*random_real(0.0,1.0) -
+		Settings::offset_box_size/2;
+	offset[1] = Settings::offset_box_size*random_real(0.0,1.0) -
+		Settings::offset_box_size/2;
+}
+
+std::vector<LearnerParameters> sampleParameters() {
+
+	std::vector<LearnerParameters> param_vec;
+
+	for (int i = 0; i < Settings::num_offsets_per_pixel; i++) {
+
+		LearnerParameters param;
+
+		//Sample offsets from a uniform distribution
+		sampleOffset(param.offset_1);
+		param.is_unary = random_real(0.0,1.0) > 0.5;
+		if (!param.is_unary)
+			sampleOffset(param.offset_2);
+
+		param_vec.push_back(param);
 	}
 
-	std::vector<LearnerParameters> sampleParameters() {
+	return param_vec;
+}
 
-		std::vector<LearnerParameters> param_vec;
+std::vector<float> sampleThresholds(float min, float max) {
 
-		for (int i = 0; i < Settings::num_offsets_per_pixel; i++) {
-
-			LearnerParameters param;
-
-			//Sample offsets from a uniform distribution
-			sampleOffset(param.offset_1);
-			param.is_unary = random_real(0.0,1.0) > 0.5;
-			if (!param.is_unary)
-				sampleOffset(param.offset_2);
-
-			param_vec.push_back(param);
-		}
-
-		return param_vec;
+	std::vector<float> thresh_vec;
+	for (int i = 0; i < Settings::num_thresholds_per_feature; i++) {
+		thresh_vec.push_back(random_real(min, max));
 	}
 
-	std::vector<float> sampleThresholds(float min, float max) {
-
-		std::vector<float> thresh_vec;
-		for (int i = 0; i < Settings::num_thresholds_per_feature; i++) {
-			thresh_vec.push_back(random_real(min, max));
-		}
-
-		return thresh_vec;
-	}
+	return thresh_vec;
 }
 
 int Node::leaf_counter = -1;

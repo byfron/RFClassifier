@@ -2,14 +2,12 @@
 #include <Frame.hpp>
 #include <Node.hpp>
 
-std::string depth_path = std::string(DATA_FOLDER) +
-	"/train/1/images/depthRender/Cam1/mayaProject.000001.png";
-std::string gt_path = std::string(DATA_FOLDER) +
-	"/train/1/images/groundtruth/Cam1/mayaProject.000001.png";
+extern std::string test_depth_path;
+extern std::string test_gt_path;
 
 TEST(TestFrame, TestBackground) {
 
-	Frame f_default(depth_path, gt_path);
+	Frame f_default(test_depth_path, test_gt_path);
 
 	//make sure bw pixels correspond with gt bw pixels
 	cv::Mat depth_image = f_default.getDepthImage();
@@ -26,7 +24,7 @@ TEST(TestFrame, TestBackground) {
 	}
 
 	Settings::bmode = BackgroundMode::RANDOM_MIDRANGE;
-	Frame f_mr(depth_path, gt_path);
+	Frame f_mr(test_depth_path, test_gt_path);
 	depth_image = f_mr.getDepthImage();
 	labels = f_mr.getLabelImage();
 	Range r = Settings::bg_mid_range;
@@ -40,7 +38,7 @@ TEST(TestFrame, TestBackground) {
 	}
 
 	Settings::bmode = BackgroundMode::RANDOM_LONGRANGE;
-	Frame f_lr(depth_path, gt_path);
+	Frame f_lr(test_depth_path, test_gt_path);
 	depth_image = f_lr.getDepthImage();
 	labels = f_lr.getLabelImage();
 	r = Settings::bg_long_range;
@@ -59,7 +57,7 @@ TEST(TestFrame, TestFWSampling) {
 	int row, col;
 	int num_samples = 100;
 	Settings::bmode = BackgroundMode::DEFAULT;
-	FramePtr frame = std::make_shared<Frame>(depth_path, gt_path);
+	FramePtr frame = std::make_shared<Frame>(test_depth_path, test_gt_path);
 
 	for (int i = 0; i < num_samples; i++) {
 		FrameUtils::sampleFromForeground(frame, row, col);
@@ -71,7 +69,7 @@ TEST(TestFrame, TestFWSampling) {
 
 TEST(TestFrame, TestFeature) {
 
-	FramePtr frame = std::make_shared<Frame>(depth_path, gt_path);
+	FramePtr frame = std::make_shared<Frame>(test_depth_path, test_gt_path);
 	DataPtr features = std::make_shared<Data>();
 	features->resize(Settings::num_pixels_per_image);
 	Settings::bmode = BackgroundMode::DEFAULT;
