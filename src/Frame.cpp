@@ -188,6 +188,11 @@ bool file_exist(const char *fileName)
 
 bool FramePool::create(float max_size) {
 
+	if (not getenv(MAIN_DB_PATH)) {
+		std::cout << "Env. variable " << MAIN_DB_PATH << " not set. Exiting." << std::endl;
+		return false;
+	}
+
 	std::string main_db_path = getenv(MAIN_DB_PATH);
 	int max_images_per_cam = 1000;
 	int max_sequences = 175;
