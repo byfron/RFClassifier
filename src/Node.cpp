@@ -1,4 +1,5 @@
 #include "Node.hpp"
+#include <ska_sort.hpp>
 #include <time.h>
 #include <Profiler.hpp>
 
@@ -96,7 +97,9 @@ void Node::train(DataSplit ds) {
 
 		{
 		Profiler p("Sorting feat.");
-		std::sort(ds.start, ds.end);
+//		std::sort(ds.start, ds.end);
+		ska_sort(ds.start, ds.end, [](const Feature & feat) { return feat.getValue(); } );
+		}
 
 		FeatureIterator last = ds.end - 1;
 
@@ -132,7 +135,8 @@ void Node::train(DataSplit ds) {
 	for (FeatureIterator it = ds.start; it < ds.end; it++) {
 		it->evaluate(best_learner);
 	}
-	std::sort(ds.start, ds.end);
+//	std::sort(ds.start, ds.end);
+	ska_sort(ds.start, ds.end, [](const Feature & feat) { return feat.getValue(); } );
 
 	clock_gettime(CLOCK_MONOTONIC, &finish);
 	double elapsed;
