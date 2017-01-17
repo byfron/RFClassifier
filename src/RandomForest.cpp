@@ -140,7 +140,7 @@ Frame RandomForest::majorityVoting(std::vector<Frame> frames) {
 		for (int r = 0; r < size.width; r++) {
 
 			Label maj_label = best_labels.at<uchar>(r,c);
-			std::vector<int> votes(Settings::num_labels, 0);
+			std::vector<int> votes(NUM_LABELS, 0);
 			for (int f = 0; f < frames.size(); f++) {
 				cv::Mat labels = frames[f].getLabelImage();
 				int idx = (int)labels.at<uchar>(r,c);
