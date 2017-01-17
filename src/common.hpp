@@ -6,6 +6,7 @@
 #define MAIN_DB_PATH "DB_PATH"
 #define INF std::numeric_limits<float>::max()
 #define MAX_DEPTH 1000 //max depth: 10 meters
+#define NUM_LABELS 45
 
 /// Data types
 typedef cv::Vec<uchar,3> color;
@@ -38,7 +39,6 @@ public:
 	static int max_tree_depth;
 	static float maximum_depth_difference;
 	static int offset_box_size;
-	static int num_labels;
 	static BackgroundMode bmode;
 	static Range bg_mid_range;
 	static Range bg_long_range;

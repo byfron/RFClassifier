@@ -1,4 +1,5 @@
 #pragma once
+
 #include "common.hpp"
 #include "Frame.hpp"
 #include "RandomGenerator.hpp"
@@ -49,27 +50,27 @@ class LabelHistogram {
 public:
 	static inline void getMostLikelyLabel(DataSplit & ds, Label & best_label, float & prob) {
 
-		std::vector<float> & hist = createHistogram(ds);
+		std::array<float, NUM_LABELS> & hist = createHistogram(ds);
 
 		float max_prob = 0.0;
-		for (int i = 0; i < hist.size(); i++) {
+		for (int i = 0; i < NUM_LABELS; i++) {
 			if (hist[i] > max_prob) {
 				max_prob = hist[i];
 				best_label = (Label)i;
 			}
 		}
 
-		prob = max_prob/hist.size();
+		prob = max_prob/NUM_LABELS;
 	}
 
-	static inline std::vector<float> & createHistogram(DataSplit & ds) {
+	static inline std::array<float, NUM_LABELS> & createHistogram(DataSplit & ds) {
 
-		static std::vector<float> hist = std::vector<float>(Settings::num_labels);
+		static std::array<float, NUM_LABELS> hist;
 
-		for (int i = 0; i < Settings::num_labels; i++)
+		for (int i = 0; i < NUM_LABELS; i++)
 			hist[i] = 0.0;
 
-		const float normalised_bin = 1./(ds.end - ds.start);
+		const float normalised_bin = 1./ds.size;
 
 		for (FeatureIterator it = ds.start; it < ds.end; it++) {
 			hist[it->getLabel()]+=normalised_bin;
@@ -81,11 +82,13 @@ public:
 
 	static inline float computeEntropy(DataSplit & ds) {
 		Profiler p("compute_entropy");
-
 		float sum = 0;
-		std::vector<float> & hist = createHistogram(ds);
 
-		for (int i = 0; i < Settings::num_labels; i++) {
+		Profiler h("Create hist");
+		std::array<float, NUM_LABELS> & hist = createHistogram(ds);
+		h.stop();
+
+		for (int i = 0; i < NUM_LABELS; i++) {
 			if (hist[i] > 0) {
 				sum += hist[i]*log(hist[i]);
 			}
@@ -131,8 +134,8 @@ public:
 	FeatureIterator getSplitIterator(DataSplit) const;
 
 	bool fallsToLeftChild(Feature & feat) const;
-	bool isLeaf() const { return _leaf_id > -1; }
-	Label getLabel() const { return _label; }
+	inline bool isLeaf() const { return _leaf_id > -1; }
+	inline Label getLabel() const { return _label; }
 
 	template <class Archive>
 	void serialize( Archive & archive )

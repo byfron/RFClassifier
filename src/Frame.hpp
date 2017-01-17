@@ -97,10 +97,10 @@ public:
 	}
 
 	inline ConstFramePtr getFrame() const;
-	inline const float & getValue() { return _value; }
-	inline const Label & getLabel() { return _label; }
-	inline const int row() { return _row; }
-	inline const int col() { return _col; }
+	inline const float & getValue() const { return _value; }
+	inline const Label & getLabel() const { return _label; }
+	inline const int row() const { return _row; }
+	inline const int col() const { return _col; }
 
 private:
 	int _row;
