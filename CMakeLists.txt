@@ -18,6 +18,8 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}
 endif()
 
 include_directories( ${OpenCV_INCLUDE_DIRS} )
+include_directories(byfron-utils/src)
+include_directories(ska_sort)
 
 include_directories(src)
 

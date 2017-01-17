@@ -1,3 +1,4 @@
+#include <../byfron-utils/src/Profiler.hpp>
 #include <RandomForest.hpp>
 #include <Frame.hpp>
 #include <fstream>
@@ -47,7 +48,11 @@ int main(int argc, char **argv) {
 			Settings::bmode = bg_modes[i];
 
 			std::shared_ptr<RandomTree> tree = std::make_shared<RandomTree>();
+
+			{
+			Profiler p("Tree train");
 			tree->train(data);
+			}
 
 			forest->push_tree(*tree);
 
@@ -59,6 +64,9 @@ int main(int argc, char **argv) {
 			return -1;
 		}
 	}
+
+	Profiler::print();
+	Profiler::clear();
 
 	//save whole forest
 	std::unique_ptr<char[]> buf( new char[ charbuffsize ] );

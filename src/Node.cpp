@@ -1,6 +1,6 @@
 #include "Node.hpp"
 #include <time.h>
-
+#include <Profiler.hpp>
 
 FeatureIterator computeSplitIterator(DataSplit ds, float threshold) {
 
@@ -57,6 +57,10 @@ int Node::leaf_counter = -1;
 
 void Node::train(DataSplit ds) {
 
+	{
+
+	Profiler p("Node train");
+
 	assert(ds.getSize() > 0);
 
 	std::cout << ">> Training node with " << ds.end - ds.start << " features." << std::endl;
@@ -82,20 +86,30 @@ void Node::train(DataSplit ds) {
 	// Evaluate all features with each set of parameters
 	for (auto learner : sampled_learners) {
 
+		{
+		Profiler p("Evaluate feat.");
 		#pragma omp parallel for
 		for (FeatureIterator it = ds.start; it < ds.end; it++) {
 			it->evaluate(learner);
 		}
+		}
 
+		{
+		Profiler p("Sorting feat.");
 		std::sort(ds.start, ds.end);
 
 		FeatureIterator last = ds.end - 1;
 
+		Profiler p("Sample thresholds");
 		//sample thresholds from a uniform distribution between
 		//min and max values of the split
 		std::vector<float> learner_thresholds =
 			sampleThresholds(ds.start->getValue(), last->getValue());
+		p.stop();
 
+
+		{
+		Profiler p("Evaluate cost func.");
 		for (float threshold : learner_thresholds) {
 
 			float cost = evaluateCostFunction(ds, threshold);
@@ -104,6 +118,7 @@ void Node::train(DataSplit ds) {
 				best_learner = learner;
 				best_cost = cost;
 			}
+		}
 		}
 	}
 
@@ -124,6 +139,8 @@ void Node::train(DataSplit ds) {
 	elapsed = (finish.tv_sec - start.tv_sec);
 	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
+	{
+	Profiler p("Cost function");
 	std::cout << ">> Finished training node in " << elapsed << " seconds. Entropy:" <<
 		evaluateCostFunction(ds, best_threshold) << std::endl;
 	FeatureIterator split_it = computeSplitIterator(ds, best_threshold);
@@ -136,7 +153,9 @@ void Node::train(DataSplit ds) {
 		LabelHistogram::getMostLikelyLabel(ds, _label, _probability);
 		_leaf_id = ++Node::leaf_counter;
 	}
+	}
 
+	}
 }
 
 bool Node::fallsToLeftChild(Feature & feat) const {
@@ -148,9 +167,7 @@ bool Node::fallsToLeftChild(Feature & feat) const {
 }
 
 FeatureIterator Node::getSplitIterator(DataSplit ds) const {
-
-	FeatureIterator it = computeSplitIterator(ds, _threshold);
-	return it;
+	return computeSplitIterator(ds, _threshold);
 }
 
 float Node::evaluateCostFunction(const DataSplit ds,

@@ -3,6 +3,7 @@
 #include "Frame.hpp"
 #include "RandomGenerator.hpp"
 #include <cereal/archives/binary.hpp>
+#include <Profiler.hpp>
 
 typedef std::vector<Feature> Data;
 typedef std::shared_ptr<Data> DataPtr;
@@ -30,13 +31,15 @@ public:
 	DataSplit(DataPtr d,
 		  FeatureIterator s,
 		  FeatureIterator e) : data(d), start(s), end(e) {
+		size = std::distance(start, end);
 	}
 
-	int getSize() const {
-		return std::distance(start, end);
+	inline int getSize() const {
+		return size;
 	}
 
 	DataPtr data;
+	int size;
 	FeatureIterator start;
 	FeatureIterator end;
 };
@@ -77,6 +80,7 @@ public:
 
 
 	static inline float computeEntropy(DataSplit & ds) {
+		Profiler p("compute_entropy");
 
 		float sum = 0;
 		std::vector<float> & hist = createHistogram(ds);
