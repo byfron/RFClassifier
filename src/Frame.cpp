@@ -339,13 +339,17 @@ void Frame::load(std::string depth_path,
 			(abs(rgba[2] - FrameUtils::color_map[label][0]) < 3) &
 			fw_mask;
 
-		cv::Size s = label_image.size();
-		for (int row = 0; row < s.height; row++) {
-			for (int col = 0; col < s.width; col++) {
-				if ((int)fw_mask.at<uchar>(row,col) == 0)
-					label_image.at<uchar>(row,col) = Background;
-				else
-					label_image.at<uchar>(row,col) = label;
+		std::vector<cv::Point2i> locations;
+		int count = countNonZero(Labels);
+		if (count > 0)
+			cv::findNonZero(Labels, locations);
+
+		for (auto p : locations) {
+
+			if ((int)fw_mask.at<uchar>(p) == 0) {
+				label_image.at<uchar>(p) = Background;
+			}else {
+				label_image.at<uchar>(p) = label;
 			}
 		}
 	}
@@ -370,5 +374,5 @@ void Frame::load(std::string depth_path,
 
 
 	FrameUtils::setBackgroundToMaxDepth(_depth, cropped_mask);
-	_labels = FrameUtils::cropForeground(label_image, rgba[3]);
+	_labels = FrameUtils::cropForeground(label_image, fw_mask);
 }
