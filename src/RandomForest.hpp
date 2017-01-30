@@ -16,7 +16,7 @@ public:
 
 	std::vector<Label> predict(DataPtr);
 	Label predict(Feature &);
-	Frame predict(Frame & frame);
+	Frame predict(FramePtr frame);
 	void train(DataPtr);
 
 	template<class Archive>
@@ -51,7 +51,7 @@ public:
 	static Frame majorityVoting(std::vector<Frame> frames);
 
 	std::vector<Label> predict(DataPtr);
-	Frame predict(Frame & frame);
+	Frame predict(FramePtr frame);
 	void train(DataPtr);
 
 	void push_tree(const RandomTree & tree) {

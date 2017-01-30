@@ -13,12 +13,16 @@ int main(int argc, char **argv) {
 
 	std::ifstream file(input_file);
 	cereal::BinaryInputArchive ar(file);
-	RandomForest forest;
-	forest.serialize<cereal::BinaryInputArchive>(ar);
+//	RandomForest forest;
+//	forest.serialize<cereal::BinaryInputArchive>(ar);
 
-	int num_seq = 5;
+	RandomTree tree;
+	tree.serialize<cereal::BinaryInputArchive>(ar);
+
+
+	int num_seq = 4;
 	int num_im = 7;
-	int num_camera = 2;
+	int num_camera = 1;
 	int charbuffsize = 500;
 	std::string main_db_path = getenv(MAIN_DB_PATH);
 	std::unique_ptr<char[]> buf( new char[charbuffsize] );
@@ -36,9 +40,11 @@ int main(int argc, char **argv) {
 
 	std::string path_gt(buf.get());
 
-	Frame test_frame(path_depth, path_gt);
+	Settings::bmode = BackgroundMode::DEFAULT;
 
-	Frame output = forest.predict(test_frame);
+	FramePtr test_frame = std::make_shared<Frame>(path_depth, path_gt);
+
+	Frame output = tree.predict(test_frame);
 
 	output.show();
 

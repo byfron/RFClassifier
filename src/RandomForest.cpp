@@ -27,11 +27,11 @@ Label RandomTree::predict(Feature & feature) {
 }
 
 
-Frame RandomTree::predict(Frame & frame) {
+Frame RandomTree::predict(FramePtr frame) {
 
-	Frame output = frame;
+	Frame output = *frame;
 	Data features;
-	frame.computeForegroundFeatures(features);
+	frame->computeForegroundFeatures(features);
 
 	for (auto feature : features) {
 		Label l = predict(feature);
@@ -166,7 +166,7 @@ Frame RandomForest::majorityVoting(std::vector<Frame> frames) {
 
 }
 
-Frame RandomForest::predict(Frame & frame) {
+Frame RandomForest::predict(FramePtr frame) {
 	std::vector<Frame> frame_predictions;
 	for (int i = 0; i < _tree_ensemble.size(); i++) {
 		frame_predictions.push_back(_tree_ensemble[i].predict(frame));

@@ -303,7 +303,7 @@ void Frame::show() {
 	}
 
 	cv::imshow("labels", labels);
-	cv::waitKey(1);
+	cv::waitKey(0);
 }
 
 void Frame::computeForegroundFeatures(Data & features) {
