@@ -11,41 +11,53 @@ int main(int argc, char **argv) {
 		std::cout << "Usage: ./predict -i <forest_input_file>" << std::endl;
 	}
 
+	FramePool::initializeColorMap();
+
 	std::ifstream file(input_file);
 	cereal::BinaryInputArchive ar(file);
-//	RandomForest forest;
-//	forest.serialize<cereal::BinaryInputArchive>(ar);
+	RandomForest forest;
+	forest.serialize<cereal::BinaryInputArchive>(ar);
 
-	RandomTree tree;
-	tree.serialize<cereal::BinaryInputArchive>(ar);
+	// RandomTree tree;
+	// tree.serialize<cereal::BinaryInputArchive>(ar);
 
+	int num_seq = 1;
+	int num_im = 2;
+	int max_images = 20;
 
-	int num_seq = 4;
-	int num_im = 7;
-	int num_camera = 1;
-	int charbuffsize = 500;
-	std::string main_db_path = getenv(MAIN_DB_PATH);
-	std::unique_ptr<char[]> buf( new char[charbuffsize] );
-	std::snprintf( buf.get(), charbuffsize,
-		       "%s/test/%d/images/depthRender/Cam%d/mayaProject.%06d.png",
-		       main_db_path.c_str(),
-		       num_seq, num_camera, num_im);
+	for (int i = 0; i < max_images; i++) {
 
-	std::string path_depth(buf.get());
+		num_im += i;
 
-	std::snprintf( buf.get(), charbuffsize,
-		       "%s/test/%d/images/groundtruth/Cam%d/mayaProject.%06d.png",
-		       main_db_path.c_str(),
-		       num_seq, num_camera, num_im);
+		int charbuffsize = 500;
+		std::string main_db_path = getenv(MAIN_DB_PATH);
+		std::unique_ptr<char[]> buf( new char[charbuffsize] );
+		std::snprintf( buf.get(), charbuffsize,
+					   "%s/%d/capturedframe%d.png",
+					   main_db_path.c_str(),
+					   num_seq, num_im);
 
-	std::string path_gt(buf.get());
+		std::string path_depth(buf.get());
 
-	Settings::bmode = BackgroundMode::DEFAULT;
+		std::snprintf( buf.get(), charbuffsize,
+					   "%s/%d/labelsframe%d.png",
+					   main_db_path.c_str(),
+					   num_seq, num_im);
 
-	FramePtr test_frame = std::make_shared<Frame>(path_depth, path_gt);
+		std::string path_gt(buf.get());
 
-	Frame output = tree.predict(test_frame);
+		Settings::bmode = BackgroundMode::DEFAULT;
 
-	output.show();
+		FramePtr test_frame = std::make_shared<Frame>(path_depth, path_gt);
+
+		Frame output = forest.predict(test_frame);
+
+		cv::imshow("depth", test_frame->getDepthImage()/2000);
+		cv::imshow("GT", test_frame->getColoredLabels());
+		cv::imshow("result", output.getColoredLabels());
+		cv::waitKey(0);
+
+	}
+
 
 }
