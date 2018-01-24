@@ -6,6 +6,8 @@
 #include <cereal/archives/binary.hpp>
 #include <Profiler.hpp>
 
+using namespace ByfronUtils;
+
 typedef std::vector<Feature> Data;
 typedef std::shared_ptr<Data> DataPtr;
 typedef Data::iterator FeatureIterator;
@@ -93,7 +95,6 @@ public:
 				sum += hist[i]*log(hist[i]);
 			}
 		}
-
 		return -sum;
 	}
 };
