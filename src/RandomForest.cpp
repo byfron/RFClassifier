@@ -26,7 +26,6 @@ Label RandomTree::predict(Feature & feature) {
 	}
 }
 
-
 Frame RandomTree::predict(FramePtr frame) {
 
 	Frame output = *frame;
@@ -130,27 +129,38 @@ std::vector<Label> RandomForest::predict(DataPtr data) {
 	}
 }
 
-Frame RandomForest::majorityVoting(std::vector<Frame> frames) {
+Frame RandomForest::majorityVoting(const std::vector<Frame> &frames) {
 
-	Frame majFrame = frames[0];
-	cv::Size size = majFrame.getImageSize();
-	cv::Mat best_labels = majFrame.getLabelImage();
+	// Frame majFrame = frames[0];
+	cv::Size size = frames[0].getImageSize();
+	cv::Mat best_labels = cv::Mat(size, CV_8UC1);
+	best_labels.setTo(0);
 
-	for (int c = 0; c < size.height; c++) {
-		for (int r = 0; r < size.width; r++) {
+	int votes[NUM_LABELS];
+
+	// std::vector<int> votes;
+
+	std::cout << frames.size() << std::endl;
+
+	for (int r = 0; r < size.height; r++) {
+		for (int c = 0; c < size.width; c++) {
 
 			Label maj_label = best_labels.at<uchar>(r,c);
-			std::vector<int> votes(NUM_LABELS, 0);
+
+			for (int i = 0; i < NUM_LABELS; i++) {
+				votes[i] = 0;
+			}
+
 			for (int f = 0; f < frames.size(); f++) {
-				cv::Mat labels = frames[f].getLabelImage();
-				int idx = (int)labels.at<uchar>(r,c);
+				Label l = frames[f].getLabel(r, c);
+				int idx = (int)l;
 				votes[idx]++;
 			}
 
 			int max_votes = 0;
 			Label best_label = 0;
 			//find the majority vote
-			for (int idx = 0; idx < votes.size(); idx++) {
+			for (int idx = 0; idx < NUM_LABELS; idx++) {
 				if (votes[idx] > max_votes) {
 					max_votes = votes[idx];
 					best_label = (Label)idx;
@@ -161,8 +171,10 @@ Frame RandomForest::majorityVoting(std::vector<Frame> frames) {
 		}
 	}
 
-	majFrame.setLabelImage(best_labels);
-	return majFrame;
+	Frame frame;
+	frame.setDepthImage(frames[0].getDepthImage());
+	frame.setLabelImage(best_labels);
+	return frame;
 
 }
 
@@ -171,6 +183,8 @@ Frame RandomForest::predict(FramePtr frame) {
 	for (int i = 0; i < _tree_ensemble.size(); i++) {
 		frame_predictions.push_back(_tree_ensemble[i].predict(frame));
 	}
+
+	//return frame_predictions[0];
 
 	return RandomForest::majorityVoting(frame_predictions);
 }

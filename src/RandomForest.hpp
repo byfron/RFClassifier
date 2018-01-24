@@ -48,7 +48,7 @@ class RandomForest
 
 public:
 
-	static Frame majorityVoting(std::vector<Frame> frames);
+	static Frame majorityVoting(const std::vector<Frame>& frames);
 
 	std::vector<Label> predict(DataPtr);
 	Frame predict(FramePtr frame);
