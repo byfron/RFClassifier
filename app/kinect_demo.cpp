@@ -40,7 +40,7 @@ namespace {
 
 		f.setDepthImage(depth);
 
-
+		//TODO: In practice we would like to predict also for background features
 		std::vector<cv::Point2i> locations;
 		cv::findNonZero(depth > 200, locations);
 		cv::Mat labels(depth.size(), CV_8UC1);
