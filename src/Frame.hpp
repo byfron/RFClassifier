@@ -8,7 +8,7 @@ class LearnerParameters;
 class Feature;
 
 enum Labels {
-	Background = 255,
+	Background = NUM_LABELS-1,
 	Foreground = 0
 };
 
@@ -20,12 +20,18 @@ class Frame : public std::enable_shared_from_this<Frame>{
 public:
 
 	Frame() {}
+	Frame(const Frame& f) {
+		_depth = f._depth.clone();
+		_labels = f._labels.clone();
+	}
 	Frame(std::string,std::string);
 
 	void load(std::string depth_path,
 		  std::string gt_path);
 
 	inline Label getLabel(int row, int col) const {
+		assert(row < _labels.size().height);
+		assert(col < _labels.size().width);
 		return (Label)_labels.at<uchar>(row, col);
 	}
 
@@ -38,13 +44,14 @@ public:
 	}
 
 	inline void setDepthImage(cv::Mat depth) {
-		_depth = depth;
+		_depth = depth.clone();
 	}
 
 	inline void setLabelImage(cv::Mat fw_mask) {
-		_labels = fw_mask;
+		_labels = fw_mask.clone();
 	}
 
+	cv::Mat getColoredLabels();
 	void show();
 	void computeForegroundFeatures(Data & features);
 
@@ -113,8 +120,9 @@ private:
 class FramePool {
 public:
 
+	static void initializeColorMap();
 	static void computeFeatures(DataPtr);
-	static bool create(float);
+	static bool create(float, const std::vector<int>& seq_range);
 	static std::vector<FramePtr> image_vector;
 
 private:

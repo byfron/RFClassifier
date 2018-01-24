@@ -94,8 +94,6 @@ std::vector<color> color_map =  {
 			//generate row
 			row = random_int(0, size.height-1);
 			col = random_int(0, size.width-1);
-
-
 		} while (frame->getLabel(row, col) == Background);
 		assert(frame->operator()(row,col) != 0);
 	}
@@ -132,6 +130,23 @@ std::vector<color> color_map =  {
 		for (auto p : locations) {
 			depth.at<float>(p) = getOutsideOfFrameDepth();
 		}
+	}
+
+	void initializeColorMap(std::vector<color>& colormap) {
+		colormap.clear();
+		float cvalues[3] = {0, 128, 255};
+		 for (int i = 0; i < 3; i++) {
+			 for (int j = 0; j < 3; j++) {
+				 for (int k = 0; k < 3; k++) {
+					 color c;
+					 c[0] = cvalues[i]; //R
+					 c[1] = cvalues[j]; //G
+					 c[2] = cvalues[k]; //B
+					 colormap.push_back(c);
+				 }
+			 }
+		 }
+
 	}
 }
 
@@ -186,7 +201,15 @@ bool file_exist(const char *fileName)
     return infile.good();
 }
 
-bool FramePool::create(float max_size) {
+void FramePool::initializeColorMap() {
+	// Initialize global color map
+	FrameUtils::initializeColorMap(FrameUtils::color_map);
+}
+
+bool FramePool::create(float max_size, const std::vector<int>& seq_range) {
+
+	assert(seq_range.size() > 0);
+	FramePool::initializeColorMap();
 
 	if (not getenv(MAIN_DB_PATH)) {
 		std::cout << "Env. variable " << MAIN_DB_PATH << " not set. Exiting." << std::endl;
@@ -194,16 +217,15 @@ bool FramePool::create(float max_size) {
 	}
 
 	std::string main_db_path = getenv(MAIN_DB_PATH);
-	int max_images_per_cam = 1000;
-	int max_sequences = 175;
-	int max_cams = 3;
+	int max_images_per_seq = 100;
+	int max_sequences = seq_range.size();
 	int charbuffsize = 500;
 
 	std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
 
-	static int num_seq = 1;
+	static int num_seq_idx = 0;
 	static int num_im = 1;
-	static int num_cam = 1;
+	int num_seq = seq_range[num_seq_idx];
 
 	int total_frames = 0;
 	float size = 0;
@@ -212,17 +234,19 @@ bool FramePool::create(float max_size) {
 
 	while(size <= max_size) {
 
+
+
 		std::snprintf( buf.get(), charbuffsize,
-			       "%s/train/%d/images/depthRender/Cam%d/mayaProject.%06d.png",
+			       "%s/%d/capturedframe%d.png",
 			       main_db_path.c_str(),
-			       num_seq, num_cam, num_im);
+			       num_seq, num_im);
 
 		std::string path_depth(buf.get());
 
 		std::snprintf( buf.get(), charbuffsize,
-			       "%s/train/%d/images/groundtruth/Cam%d/mayaProject.%06d.png",
+			       "%s/%d/labelsframe%d.png",
 			       main_db_path.c_str(),
-			       num_seq, num_cam, num_im);
+			       num_seq, num_im);
 
 		std::string path_gt(buf.get());
 
@@ -236,21 +260,16 @@ bool FramePool::create(float max_size) {
 
 		FramePool::image_vector.push_back(frame);
 
-		if (num_im <= max_images_per_cam) {
+		if (num_im < max_images_per_seq) {
 			num_im++;
 		}
 		else {
 			num_im = 1;
-			if (num_cam < max_cams) {
-				num_cam++;
+			if (num_seq_idx < max_sequences-1) {
+				num_seq_idx++;
+				num_seq = seq_range[num_seq_idx];
 			}
-			else {
-				num_cam = 1;
-				if (num_seq < max_sequences) {
-					num_seq++;
-				}
-				else break;
-			}
+			else break;
 		}
 
 
@@ -287,21 +306,27 @@ Frame::Frame(std::string depth_path,
 	load(depth_path, gt_path);
 }
 
-void Frame::show() {
-
-	cv::Mat depth = (_depth/1.03 - 50)*255./(800.-50.);
-	depth.convertTo(depth, CV_8UC1);
-	cv::imshow("depth2", depth);
-
+cv::Mat Frame::getColoredLabels() {
 	cv::Mat labels(_labels.size(), CV_8UC3);
 
 	for (int row = 0; row < _labels.rows; row++) {
 		for (int col = 0; col < _labels.cols; col++) {
 			uchar label = _labels.at<uchar>(row, col);
-			labels.at<color>(row,col) = FrameUtils::color_map[label];
+			if (label == Background) {
+				labels.at<color>(row,col) = cv::Vec<uchar,3>(255,255,255);
+			}
+			else {
+				labels.at<color>(row,col) = FrameUtils::color_map[label];
+			}
 		}
 	}
+	return labels;
+}
 
+void Frame::show() {
+
+	cv::imshow("depth2", _depth/2000);
+	cv::Mat labels = getColoredLabels();
 	cv::imshow("labels", labels);
 	cv::waitKey(0);
 }
@@ -325,34 +350,48 @@ void Frame::load(std::string depth_path,
 
 	cv::Mat gt_image = cv::imread(gt_path, -1);
 	cv::Mat label_image = cv::Mat(gt_image.size(), CV_8UC1);
-	label_image.setTo(0);
+	label_image.setTo(Background);
 	cv::Mat rgba[4];
 	cv::split(gt_image, rgba);
 
+	rgba[0].convertTo(rgba[0], CV_32F);
+	rgba[1].convertTo(rgba[1], CV_32F);
+	rgba[2].convertTo(rgba[2], CV_32F);
+
 	cv::Mat fw_mask = cv::Mat(gt_image.size(), CV_8UC1);
-	fw_mask.setTo(0);
-	fw_mask.setTo(1,rgba[3] > 0);
+	fw_mask.setTo(1);
 
-	int num_labels = FrameUtils::color_map.size();
+	// background : all values to 255
+	fw_mask.setTo(0, rgba[0] == 255 & rgba[1] == 255 & rgba[2] == 255); //BGRA
 
-	// Generate label image
+	int num_labels = 21 + 1 + 1; //21 body parts + (label=21) ignore + (label=22)table
+
+	// cv::imshow("mask", fw_mask*255);
+	// cv::waitKey(0);
+
+	// generate label image (background is 255)
 	for (uchar label = 0; label < num_labels; label++) {
 
+		if (label == 21) continue; //ignore non-annotated parts (legs)
+
 		cv::Mat Labels =
-			(abs(rgba[0] - FrameUtils::color_map[label][2]) < 3) &
+			(abs(rgba[0] - FrameUtils::color_map[label][2]) < 3) & //account for small rounding in data
 			(abs(rgba[1] - FrameUtils::color_map[label][1]) < 3) &
 			(abs(rgba[2] - FrameUtils::color_map[label][0]) < 3) &
 			fw_mask;
 
+		//cv::imshow("labels", (Labels > 0)*255);
+		//cv::waitKey(0);
+
 		std::vector<cv::Point2i> locations;
 		int count = countNonZero(Labels);
-		if (count > 0)
+		if (count > 0) {
 			cv::findNonZero(Labels, locations);
+		}
 
 		for (auto p : locations) {
-
 			if ((int)fw_mask.at<uchar>(p) == 0) {
-				label_image.at<uchar>(p) = Background;
+				label_image.at<uchar>(p) = Background; //255
 			}else {
 				label_image.at<uchar>(p) = label;
 			}
@@ -360,15 +399,14 @@ void Frame::load(std::string depth_path,
 	}
 
 	// Crop foreground data
-	cv::Mat depth = FrameUtils::cropForeground(
-		cv::imread(depth_path, CV_LOAD_IMAGE_GRAYSCALE), rgba[3]);
-
-	// Crop mask
-	cv::Mat cropped_mask = FrameUtils::cropForeground(fw_mask, fw_mask);
-
-	// Transform to centimetersa
+	cv::Mat raw_depth = cv::imread(depth_path, -1);
+	cv::Mat raw_depth_float;
+	raw_depth.convertTo(raw_depth_float, CV_32FC4);
+	cv::Mat rgba_depth[4];
+	cv::split(raw_depth_float, rgba_depth); //BGRA
+	cv::Mat depth = 255*rgba_depth[2] + rgba_depth[1];
 	depth.convertTo(_depth, CV_32FC1);
-	_depth = (_depth/255. * (800-50) + 50)*1.03;
+
 
 
 	// zero depth?
@@ -378,6 +416,12 @@ void Frame::load(std::string depth_path,
 			assert(_depth.at<float>(row,col) > 0);
 
 
-	FrameUtils::setBackgroundToMaxDepth(_depth, cropped_mask);
+	// Crop mask
+	cv::Mat cropped_mask = FrameUtils::cropForeground(fw_mask, fw_mask);
+
 	_labels = FrameUtils::cropForeground(label_image, fw_mask);
+
+	_depth = FrameUtils::cropForeground(_depth, fw_mask);
+
+	FrameUtils::setBackgroundToMaxDepth(_depth, cropped_mask);
 }
