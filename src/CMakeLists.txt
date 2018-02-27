@@ -29,9 +29,12 @@ target_link_libraries(RandomForest
   Frame
   Node
   Settings
-  RandomGenerator
-  OpenCLManager
+  RandomGenerator  
   ${OpenCV_LIBS})
+
+if (${WITH_OPENCL})
+target_link_libraries(RandomForest
+  OpenCLManager)
 
 add_library(OpenCLManager
   cl_utils.hpp
@@ -45,3 +48,4 @@ add_library(OpenCLManager
 target_link_libraries(OpenCLManager
   ${OpenCL_LIBRARIES}
   )
+endif()
