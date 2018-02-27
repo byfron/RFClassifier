@@ -1,3 +1,5 @@
+add_definitions(-DOPENCL_KERNEL_PATH="${CMAKE_CURRENT_SOURCE_DIR}/gpu_kernels/")
+
 add_library(Frame
   Frame.hpp
   Frame.cpp
@@ -28,4 +30,18 @@ target_link_libraries(RandomForest
   Node
   Settings
   RandomGenerator
+  OpenCLManager
   ${OpenCV_LIBS})
+
+add_library(OpenCLManager
+  cl_utils.hpp
+  cl_utils.cpp
+  OpenCLManager.cpp
+  OpenCLManager.hpp
+  OpenCLKernel.hpp
+  OpenCLKernel.cpp
+  )
+
+target_link_libraries(OpenCLManager
+  ${OpenCL_LIBRARIES}
+  )

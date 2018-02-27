@@ -3,11 +3,26 @@
 #include "common.hpp"
 #include "Frame.hpp"
 #include "Node.hpp"
+#include "OpenCLManager.hpp"
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/vector.hpp>
 #include <fstream>
+
+struct GPUTree {
+	uint32_t* left_child_arr;
+	uint32_t* right_child_arr;
+	float* offset1_x_arr;
+	float* offset1_y_arr;
+	float* offset2_x_arr;
+	float* offset2_y_arr;
+	float* threshold_arr;
+	float* probability_arr;
+	uint8_t* is_unary_arr;
+	uint8_t* is_leaf_arr;
+	uint8_t* label_arr;
+};
 
 class RandomTree
 {
@@ -37,6 +52,9 @@ public:
 		ar(*this);
 	}
 
+
+	void computeGPUTree(GPUTree* gpu_tree);	
+	
 private:
 
 	std::vector<Node> _nodes;
@@ -50,10 +68,16 @@ public:
 
 	static Frame majorityVoting(const std::vector<Frame>& frames);
 
+	RandomForest();	
+	
 	std::vector<Label> predict(DataPtr);
 	Frame predict(FramePtr frame);
+	Frame predictGPU(FramePtr frame);
 	void train(DataPtr);
 
+	void initOpenCL();
+	void createGPUBuffers();
+	
 	void push_tree(const RandomTree & tree) {
 		_tree_ensemble.push_back(tree);
 	}
@@ -70,8 +94,12 @@ public:
 		archive(_tree_ensemble);
 	}
 
+	
+
 private:
 
 	std::vector<RandomTree> _tree_ensemble;
+	OpenCLManager _cl_manager;
+	CLSharedData _shared_data;
 
 };

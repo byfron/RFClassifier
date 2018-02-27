@@ -8,8 +8,8 @@ class LearnerParameters;
 class Feature;
 
 enum Labels {
-	Background = NUM_LABELS-1,
-	Foreground = 0
+	Background = 0,
+	Foreground = 1
 };
 
 typedef std::vector<Feature> Data;
@@ -90,6 +90,7 @@ typedef std::shared_ptr<const Frame> ConstFramePtr;
 namespace FrameUtils {
 	void setBackgroundToMaxDepth(cv::Mat & depth, const cv::Mat & mask);
 	void sampleFromForeground(const FramePtr frame, int & row, int & col);
+	cv::Mat cropForeground(cv::Mat im, cv::Mat mask);
 }
 
 
@@ -122,7 +123,7 @@ public:
 
 	static void initializeColorMap();
 	static void computeFeatures(DataPtr);
-	static bool create(float, const std::vector<int>& seq_range);
+	static bool create(float);
 	static std::vector<FramePtr> image_vector;
 
 private:

@@ -62,7 +62,7 @@ public:
 			}
 		}
 
-		prob = max_prob/NUM_LABELS;
+		prob = max_prob;
 	}
 
 	static inline std::array<float, NUM_LABELS> & createHistogram(DataSplit & ds) {
@@ -156,6 +156,8 @@ public:
 
 private:
 
+	friend class RandomTree;
+	
 	LearnerParameters _node_params;
 	float _threshold;
 	size_t _depth;

@@ -33,22 +33,13 @@ int main(int argc, char **argv) {
 		BackgroundMode::RANDOM_LONGRANGE,
 		BackgroundMode::DEFAULT};
 
-	int current_seq = 1;
-	int num_seqs_per_tree = 20; //10 sequences per tree
-
 	for (int i = 0; i < num_trees; i++) {
-
-		std::vector<int> seq_range;
-		for (int j = 0; j < num_seqs_per_tree; j++) {
-			seq_range.push_back(current_seq + j);
-		}
-		current_seq += seq_range.size();
 
 		std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
 		std::snprintf( buf.get(), charbuffsize, "tree_%02d_%s", i, output_file);
 
 		// Load training
-		if (FramePool::create(limit, seq_range)) {
+		if (FramePool::create(limit)) {
 
 			DataPtr data = std::make_shared<Data>();
 			FramePool::computeFeatures(data);

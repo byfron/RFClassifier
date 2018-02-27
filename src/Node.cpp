@@ -73,16 +73,26 @@ void Node::train(DataSplit ds) {
 	if (_depth == Settings::max_tree_depth) {
 		LabelHistogram::getMostLikelyLabel(ds, _label, _probability);
 		_leaf_id = ++Node::leaf_counter;
+		std::cout << "LEAF: MAX tree depth reached!" << std::endl;
 		return;
-	}
+	}	
 
 	// Check if we have just one feature per node
 	if (ds.getSize() == 1) {
 		LabelHistogram::getMostLikelyLabel(ds, _label, _probability);
 		_leaf_id = ++Node::leaf_counter;
+		std::cout << "LEAF: one feature!" << std::endl;
 		return;
 	}
 
+	// Check if the entropy is already zero
+	// if (evaluateCostFunction(ds, INF) == 0) {
+	// 	LabelHistogram::getMostLikelyLabel(ds, _label, _probability);
+	// 	_leaf_id = ++Node::leaf_counter;
+	// 	std::cout << "LEAF: entropy of partition zero!" << std::endl;
+	// 	return;
+	// }
+					 
 	// Sample a new set of parameters
 	std::vector<LearnerParameters> sampled_learners =
 		sampleParameters();
@@ -112,6 +122,7 @@ void Node::train(DataSplit ds) {
 		Profiler p("Sample thresholds");
 		//sample thresholds from a uniform distribution between
 		//min and max values of the split
+
 		std::vector<float> learner_thresholds =
 			sampleThresholds(ds.start->getValue(), last->getValue());
 		p.stop();
@@ -162,6 +173,7 @@ void Node::train(DataSplit ds) {
 		LabelHistogram::getMostLikelyLabel(ds, _label, _probability);
 		_leaf_id = ++Node::leaf_counter;
 
+		std::cout << "LEAF: entropy zero!" << std::endl;
 
 		// FeatureIterator split_it = computeSplitIterator(ds, best_threshold);
 		// DataSplit l_split = DataSplit(ds.data, ds.start, split_it);
@@ -185,6 +197,7 @@ void Node::train(DataSplit ds) {
 	    split_it == ds.end) {
 		LabelHistogram::getMostLikelyLabel(ds, _label, _probability);
 		_leaf_id = ++Node::leaf_counter;
+		std::cout << "LEAF: split leaves all nodes in one side!" << std::endl;
 		return;
 	}
 	}

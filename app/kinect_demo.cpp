@@ -16,40 +16,56 @@ struct DepthFrame {
 
 namespace {
 
-	Frame convertToFrame(DepthFrame & in) {
+	FramePtr convertToFrame(DepthFrame & in) {
 
-		Frame f;
+		float threshold = 1.5f;
+		
+		FramePtr f = std::make_shared<Frame>();
 		cv::Mat depth(cv::Size(in.width, in.height), CV_32FC1, in.data.data());
 
-		// Convert to cm:
-		depth /= 10.;
+		// Convert to m:
+		depth /= 1000.0f;
+
 
 		// Mask foreground < 2m
-//		FrameUtils::setBackgroundToMaxDepth(depth, depth > 200.);
+		//FrameUtils::setBackgroundToMaxDepth(depth, depth > 1500);
 
-		cv::Mat bw_mask = depth > 200;
-		FrameUtils::setBackgroundToMaxDepth(depth, 1 - bw_mask);
+		cv::Mat fw_mask = cv::Mat(depth.size(), CV_8UC1);
+		fw_mask.setTo(0);
+		fw_mask.setTo(1, depth != 0 & depth < threshold);
+		
+		// cv::Mat bw_mask = depth > threshold;
+		// // FrameUtils::setBackgroundToMaxDepth(depth, 1 - bw_mask);
 
-		cv::Mat masked_depth = cv::Mat(depth.size(), CV_32FC1);
-		masked_depth.setTo(0);
+		// cv::Mat masked_depth = cv::Mat(depth.size(), CV_32FC1);
+		// masked_depth.setTo(0);
+		// depth.copyTo(masked_depth, 1 - bw_mask);
+	
 
-		depth.copyTo(masked_depth, 1 - bw_mask);
+		
+		
 
-		cv::imshow("mask", masked_depth);
-		cv::waitKey(1);
+		//depth = FrameUtils::cropForeground(depth, fw_mask);
+		//FrameUtils::setBackgroundToMaxDepth(depth, fw_mask);
 
-		f.setDepthImage(depth);
+		
 
 		//TODO: In practice we would like to predict also for background features
-		std::vector<cv::Point2i> locations;
-		cv::findNonZero(depth > 200, locations);
+		// std::vector<cv::Point2i> locations;
+		// cv::findNonZero(depth > threshold, locations);
 		cv::Mat labels(depth.size(), CV_8UC1);
-		labels.setTo((uchar)Labels::Foreground);
-		for (auto p : locations) {
-			labels.at<uchar>(p) = (uchar)Labels::Background;
-		}
+		labels.setTo((uchar)Labels::Background);
+		labels.setTo((uchar)Labels::Foreground, fw_mask);
+		// for (auto p : locations) {
+		// 	labels.at<uchar>(p) = (uchar)Labels::Background;
+		// }
 
 
+		cv::Mat cropped_mask = FrameUtils::cropForeground(fw_mask, fw_mask);
+		labels = FrameUtils::cropForeground(labels, fw_mask);
+		depth = FrameUtils::cropForeground(depth, fw_mask);
+		FrameUtils::setBackgroundToMaxDepth(depth, cropped_mask);
+		
 		// static std::vector<color> mask_colmap =  { {0,0,0}, {255,255,255} };
 
 		// for (int row = 0; row < labels.rows; row++) {
@@ -59,8 +75,16 @@ namespace {
 		// 		}
 		// 	}
 		// }
-
-		f.setLabelImage(labels);
+		
+		cv::Mat depth_3c;
+		cv::Mat scaled_depth = (depth-0.5)*200;
+		cv::Mat ind[] = {scaled_depth, scaled_depth, scaled_depth};
+		cv::merge(ind, 3, depth_3c);
+		depth_3c.convertTo(depth_3c, CV_8UC3);
+		cv::imshow("depth", depth_3c);
+		
+		f->setLabelImage(labels);
+		f->setDepthImage(depth);
 
 		return f;
 	}
@@ -121,6 +145,8 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
+	FramePool::initializeColorMap();		
+
 	KinectCamera camera;
 	char * input_file = getCmdOption(argv, argv + argc, "-i");
 
@@ -129,23 +155,49 @@ int main(int argc, char **argv) {
 	cereal::BinaryInputArchive ar(file);
 	RandomForest forest;
 	forest.serialize<cereal::BinaryInputArchive>(ar);
+	forest.createGPUBuffers();
+	
+	//RandomForest forest;
+	//forest.serialize<cereal::BinaryInputArchive>(ar);
 
 
 	camera.start();
-
+	int idx = 0;
+	
 	for (;;) {
 
 		DepthFrame frame;
 		camera.capture(frame);
 
-		Frame f = convertToFrame(frame);
-//		f.show();
+		FramePtr f = convertToFrame(frame);
+		//f->show();
 		std::cout << "running prediction" << std::endl;
-		Frame output = forest.predict(f);
+		Frame output = forest.predictGPU(f);
 		std::cout << "DONE" << std::endl;
 
-		output.show();
+		//output.show();
 
+		cv::Size size = output.getImageSize();
+		cv::Mat result = cv::Mat(cv::Size(size.width*2, size.height), CV_8UC3);
+
+		cv::Mat roi_gt = result(cv::Rect(size.width, 0, size.width, size.height));					
+		output.getColoredLabels().copyTo(roi_gt);
+
+		cv::Mat depth_3c;
+		cv::Mat scaled_depth = (output.getDepthImage()-0.5)*200;
+		cv::Mat in[] = {scaled_depth, scaled_depth, scaled_depth};
+		cv::merge(in, 3, depth_3c);
+		depth_3c.convertTo(depth_3c, CV_8UC3);
+		cv::Mat roi_depth = result(cv::Rect(0, 0, size.width, size.height));
+		depth_3c.copyTo(roi_depth);
+
+		cv::imshow("res", result);
+		cv::waitKey(1);
+		
+		char buff[50];
+		sprintf(buff, "kinect_res%03d.png", idx);
+		cv::imwrite(buff, result);
+		idx++;
 
 	}
 }

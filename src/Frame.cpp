@@ -12,6 +12,36 @@ std::vector<FramePtr> FramePool::image_vector = std::vector<FramePtr>();
 
 namespace FrameUtils{
 
+
+//maps whole labels to simple labels 	
+std::map<uchar, uchar> simpleLabelsMap {
+	{0, 1}, //head->neck
+	{1, 1}, //head->head_top_left
+	{2, 1}, //head->head_bottom_left
+	{3, 1}, //head->head_top_right
+	{4, 1}, //head->head_bottom_right
+		
+	{5, 2}, //top_left_body->...
+	{6, 3}, //top_right_body->...
+	{7, 4}, //bot_left_body->...
+	{8, 5}, //bot_right_body->...
+	{9, 6}, //left_upper->left_sh
+	{10,6}, //left_upper->left_upper
+	{11,8}, //left_fore->left_elbow
+	{12,8}, //left_fore->...
+	{13,10}, //left_hand->left_wr
+	{14,10}, //left_hand->...
+	{15,7}, //right_up->right_sh
+	{16,7}, //right_up->...
+	{17,9}, //right_fore->right_elbow
+	{18,9}, //right_fore->...
+	{19,11}, //right_hand->right_wr
+	{20,11}, //right_hand->...
+		
+	{21,0}, //ignore?
+	{22,12} //table	
+};
+	
 std::vector<color> color_map =  {
 	 {255,106,  0},
 	 {0, 0, 0},
@@ -146,7 +176,6 @@ std::vector<color> color_map =  {
 				 }
 			 }
 		 }
-
 	}
 }
 
@@ -165,10 +194,12 @@ ConstFramePtr Feature::getFrame() const {
 void Feature::evaluate(const LearnerParameters & params) {
 
 	ConstFramePtr im = getFrame();
+
+
+	//TODO! this can happen outside of here!
 	float z = im->operator()(_row, _col);
 
 	assert(z != 0);
-
 	int row = _row + int(params.offset_1[0]/z);
 	int col = _col + int(params.offset_1[1]/z);
 
@@ -193,6 +224,8 @@ void Feature::evaluate(const LearnerParameters & params) {
 	}
 
 	_value -= z;
+
+
 }
 
 bool file_exist(const char *fileName)
@@ -206,26 +239,24 @@ void FramePool::initializeColorMap() {
 	FrameUtils::initializeColorMap(FrameUtils::color_map);
 }
 
-bool FramePool::create(float max_size, const std::vector<int>& seq_range) {
+bool FramePool::create(float max_size) {
 
-	assert(seq_range.size() > 0);
 	FramePool::initializeColorMap();
 
 	if (not getenv(MAIN_DB_PATH)) {
 		std::cout << "Env. variable " << MAIN_DB_PATH << " not set. Exiting." << std::endl;
-		return false;
+		return true;
 	}
 
 	std::string main_db_path = getenv(MAIN_DB_PATH);
 	int max_images_per_seq = 100;
-	int max_sequences = seq_range.size();
+	int max_sequences = 100;
 	int charbuffsize = 500;
 
 	std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
 
-	static int num_seq_idx = 0;
+	static int num_seq = 1;
 	static int num_im = 1;
-	int num_seq = seq_range[num_seq_idx];
 
 	int total_frames = 0;
 	float size = 0;
@@ -233,8 +264,6 @@ bool FramePool::create(float max_size, const std::vector<int>& seq_range) {
 	FramePool::image_vector.clear();
 
 	while(size <= max_size) {
-
-
 
 		std::snprintf( buf.get(), charbuffsize,
 			       "%s/%d/capturedframe%d.png",
@@ -258,6 +287,8 @@ bool FramePool::create(float max_size, const std::vector<int>& seq_range) {
 
 		FramePtr frame = std::make_shared<Frame>(path_depth, path_gt);
 
+//		frame->show();
+		
 		FramePool::image_vector.push_back(frame);
 
 		if (num_im < max_images_per_seq) {
@@ -265,9 +296,8 @@ bool FramePool::create(float max_size, const std::vector<int>& seq_range) {
 		}
 		else {
 			num_im = 1;
-			if (num_seq_idx < max_sequences-1) {
-				num_seq_idx++;
-				num_seq = seq_range[num_seq_idx];
+			if (num_seq < max_sequences-1) {
+				num_seq++;
 			}
 			else break;
 		}
@@ -378,8 +408,8 @@ void Frame::load(std::string depth_path,
 			(abs(rgba[0] - FrameUtils::color_map[label][2]) < 3) & //account for small rounding in data
 			(abs(rgba[1] - FrameUtils::color_map[label][1]) < 3) &
 			(abs(rgba[2] - FrameUtils::color_map[label][0]) < 3) &
-			fw_mask;
-
+			fw_mask;		
+		
 		//cv::imshow("labels", (Labels > 0)*255);
 		//cv::waitKey(0);
 
@@ -389,11 +419,13 @@ void Frame::load(std::string depth_path,
 			cv::findNonZero(Labels, locations);
 		}
 
+		uchar simple_label = FrameUtils::simpleLabelsMap[label];
+		
 		for (auto p : locations) {
 			if ((int)fw_mask.at<uchar>(p) == 0) {
 				label_image.at<uchar>(p) = Background; //255
 			}else {
-				label_image.at<uchar>(p) = label;
+				label_image.at<uchar>(p) = simple_label;
 			}
 		}
 	}
@@ -405,6 +437,9 @@ void Frame::load(std::string depth_path,
 	cv::Mat rgba_depth[4];
 	cv::split(raw_depth_float, rgba_depth); //BGRA
 	cv::Mat depth = 255*rgba_depth[2] + rgba_depth[1];
+
+	cv::Mat depthMask = depth < 10000; //consider valid depth only within 10 meters
+	
 	depth.convertTo(_depth, CV_32FC1);
 
 
@@ -418,10 +453,17 @@ void Frame::load(std::string depth_path,
 
 	// Crop mask
 	cv::Mat cropped_mask = FrameUtils::cropForeground(fw_mask, fw_mask);
+	// depthMask = FrameUtils::cropForeground(depthMask, fw_mask);
 
-	_labels = FrameUtils::cropForeground(label_image, fw_mask);
+	// _labels = FrameUtils::cropForeground(label_image, fw_mask);
 
-	_depth = FrameUtils::cropForeground(_depth, fw_mask);
+	// _depth = FrameUtils::cropForeground(_depth, fw_mask);
 
-	FrameUtils::setBackgroundToMaxDepth(_depth, cropped_mask);
+	_labels  = label_image;
+	
+
+	//transform depth to meters
+	_depth = _depth/1000.0f;
+		
+	FrameUtils::setBackgroundToMaxDepth(_depth, depthMask);
 }
