@@ -12,6 +12,7 @@ target_link_libraries(predict
   Frame
   RandomForest)
 
+if (${WITH_KINECT})
 find_package(freenect2 REQUIRED)
 
 add_executable(kinect_demo
@@ -21,3 +22,4 @@ target_link_libraries(kinect_demo
    RandomForest
    ${OpenCV_LIBS}
    ${freenect2_LIBRARY})
+endif()

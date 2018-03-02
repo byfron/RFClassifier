@@ -10,6 +10,7 @@ set(CMAKE_CXX_FLAGS "-Ofast -march=native")
 
 add_definitions(-DDATA_FOLDER="${CMAKE_SOURCE_DIR}/data")
 
+option(WITH_KINECT "Compile with Kinect support" OFF)
 set(WITH_OPENCL "GPU" CACHE STRING "Type of OpenCL backend [GPU|CPU|OFF]")
 set_property(CACHE WITH_OPENCL PROPERTY STRINGS "OFF" "GPU" "CPU")
 
