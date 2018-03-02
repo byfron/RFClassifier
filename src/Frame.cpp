@@ -282,7 +282,8 @@ bool FramePool::create(float max_size) {
 		std::cout << "Loading image " << buf.get() << std::endl;
 		if (!file_exist(buf.get())) {
 			std::cout << "Error: " << buf.get() << " does not exist" << std::endl;
-			return false;
+			num_seq++;
+			continue;
 		}
 
 		FramePtr frame = std::make_shared<Frame>(path_depth, path_gt);
