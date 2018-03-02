@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 	cereal::BinaryInputArchive ar(file);
 	RandomForest forest;
 	forest.serialize<cereal::BinaryInputArchive>(ar);
-	forest.createGPUBuffers();
+//	forest.createGPUBuffers();
 	
 	
 	
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 
 		using nano = std::chrono::nanoseconds;
 		auto start = std::chrono::high_resolution_clock::now();	   
-		Frame output = forest.predictGPU(test_frame);
+		Frame output = forest.predict(test_frame);
 		auto finish = std::chrono::high_resolution_clock::now();
 		std::cout << "GPU took "
 				  << std::chrono::duration_cast<nano>(finish - start).count()
