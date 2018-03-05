@@ -250,7 +250,7 @@ bool FramePool::create(float max_size) {
 
 	std::string main_db_path = getenv(MAIN_DB_PATH);
 	int max_images_per_seq = 100;
-	int max_sequences = 100;
+	int max_sequences = 1000;
 	int charbuffsize = 500;
 
 	std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
