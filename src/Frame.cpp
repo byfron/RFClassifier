@@ -167,7 +167,13 @@ std::vector<color> color_map =  {
 
 	void setBackgroundToMaxDepth(cv::Mat & depth, const cv::Mat & mask) {
 		std::vector<cv::Point2i> locations;
-		cv::findNonZero(1 - mask, locations);
+		cv::Mat inv_mask = 1 - mask;
+		if(!inv_mask.isContinuous()) inv_mask=inv_mask.clone();
+		int count = countNonZero(inv_mask);
+		if (count > 0) {
+			cv::findNonZero(inv_mask, locations);
+		}
+		
 		for (auto p : locations) {
 			depth.at<float>(p) = getOutsideOfFrameDepth();
 		}
@@ -465,7 +471,8 @@ void Frame::load(std::string depth_path,
 	cv::split(raw_depth_float, rgba_depth); //BGRA
 	cv::Mat depth = 255*rgba_depth[2] + rgba_depth[1];
 
-	cv::Mat depthMask = depth < 10000; //consider valid depth only within 10 meters
+	cv::Mat depthMask = (depth < 10000); //consider valid depth only within 10 meters
+	if(!depthMask.isContinuous()) depthMask=depthMask.clone();
 	
 	depth.convertTo(_depth, CV_32FC1);
 
