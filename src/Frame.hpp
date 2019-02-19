@@ -54,6 +54,7 @@ public:
 	cv::Mat getColoredLabels();
 	void show();
 	void computeForegroundFeatures(Data & features);
+	void computeImageFeatures(Data & features);
 
 	inline bool inForeground(int row, int col) const {
 	        return (int)_labels.at<uchar>(row,col) != (int)Labels::Background;

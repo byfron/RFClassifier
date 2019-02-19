@@ -17,16 +17,13 @@ int main(int argc, char **argv) {
 	cereal::BinaryInputArchive ar(file);
 	RandomForest forest;
 	forest.serialize<cereal::BinaryInputArchive>(ar);
-//	forest.createGPUBuffers();
-	
-	
 	
  	//RandomTree tree;
 	//tree.serialize<cereal::BinaryInputArchive>(ar);
 
-	int num_seq = 200;
+	int num_seq = 100;
 	int num_im = 2;
-	int max_images = 20;
+	int max_images = 200;
 
 	for (int i = 0; i < max_images; i++) {
 
@@ -56,16 +53,16 @@ int main(int argc, char **argv) {
 		FramePtr test_frame = std::make_shared<Frame>(path_depth, path_gt);
 
 		using nano = std::chrono::nanoseconds;
+		// auto start = std::chrono::high_resolution_clock::now();	   
+		// Frame output = forest.predict(test_frame);
+		// auto finish = std::chrono::high_resolution_clock::now();
+		// std::cout << "GPU took "
+		// 		  << std::chrono::duration_cast<nano>(finish - start).count()
+		// 		  << " nanoseconds\n";
+		
 		auto start = std::chrono::high_resolution_clock::now();	   
 		Frame output = forest.predict(test_frame);
 		auto finish = std::chrono::high_resolution_clock::now();
-		std::cout << "GPU took "
-				  << std::chrono::duration_cast<nano>(finish - start).count()
-				  << " nanoseconds\n";
-		
-		start = std::chrono::high_resolution_clock::now();	   
-		Frame output2 = forest.predict(test_frame);
-		finish = std::chrono::high_resolution_clock::now();
 		std::cout << "CPU took "
 				  << std::chrono::duration_cast<nano>(finish - start).count()
 				  << " nanoseconds\n";
@@ -82,7 +79,7 @@ int main(int argc, char **argv) {
 		output.getColoredLabels().copyTo(roi_gt);
 
 		cv::Mat depth_3c;
-		cv::Mat scaled_depth = (test_frame->getDepthImage()-0.5)*200;
+		cv::Mat scaled_depth = (test_frame->getDepthImage()-0.5)*100;
 		cv::Mat in[] = {scaled_depth, scaled_depth, scaled_depth};
 		cv::merge(in, 3, depth_3c);
 		depth_3c.convertTo(depth_3c, CV_8UC3);

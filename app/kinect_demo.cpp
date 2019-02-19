@@ -64,17 +64,7 @@ namespace {
 		cv::Mat cropped_mask = FrameUtils::cropForeground(fw_mask, fw_mask);
 		labels = FrameUtils::cropForeground(labels, fw_mask);
 		depth = FrameUtils::cropForeground(depth, fw_mask);
-		FrameUtils::setBackgroundToMaxDepth(depth, cropped_mask);
-		
-		// static std::vector<color> mask_colmap =  { {0,0,0}, {255,255,255} };
-
-		// for (int row = 0; row < labels.rows; row++) {
-		// 	for (int col = 0; col < labels.cols; col++) {
-		// 		if (depth.at<float>(row,col) < 100.) {
-		// 			labels.at<uchar>(row,col) = 1;
-		// 		}
-		// 	}
-		// }
+		FrameUtils::setBackgroundToMaxDepth(depth, cropped_mask);		
 		
 		cv::Mat depth_3c;
 		cv::Mat scaled_depth = (depth-0.5)*200;
