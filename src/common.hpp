@@ -6,7 +6,7 @@
 #define MAIN_DB_PATH "DB_PATH"
 #define INF std::numeric_limits<float>::max()
 #define MAX_DEPTH 10 //max depth: 10 meters
-#define NUM_LABELS 13 //11 body parts + ignore + table
+#define NUM_LABELS 2 //11 body parts + ignore + table
 //24 //21[0-20] body parts, +1 ignore [21], +1 table [22], +1 background [23]
 
 /// Data types

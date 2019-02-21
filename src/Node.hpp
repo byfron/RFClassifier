@@ -5,6 +5,7 @@
 #include "RandomGenerator.hpp"
 #include <cereal/archives/binary.hpp>
 #include <Profiler.hpp>
+#include <Eigen/Dense>
 
 using namespace ByfronUtils;
 
@@ -52,12 +53,12 @@ class LabelHistogram {
 public:
 	static inline void getMostLikelyLabel(DataSplit & ds, Label & best_label, float & prob) {
 
-		std::array<float, NUM_LABELS> & hist = createHistogram(ds);
+		Eigen::Matrix<float, 1, NUM_LABELS> hist = createHistogram(ds);
 
 		float max_prob = 0.0;
 		for (int i = 0; i < NUM_LABELS; i++) {
-			if (hist[i] > max_prob) {
-				max_prob = hist[i];
+			if (hist(i) > max_prob) {
+				max_prob = hist(i);
 				best_label = (Label)i;
 			}
 		}
@@ -65,36 +66,31 @@ public:
 		prob = max_prob;
 	}
 
-	static inline std::array<float, NUM_LABELS> & createHistogram(DataSplit & ds) {
-
-		static std::array<float, NUM_LABELS> hist;
-
-		for (int i = 0; i < NUM_LABELS; i++)
-			hist[i] = 0.0;
-
-		const float normalised_bin = 1./ds.size;
+	static inline Eigen::Matrix<float, 1, NUM_LABELS> createHistogram(DataSplit & ds) {
+		Profiler p("create hist");
+		static Eigen::Matrix<int, 1, NUM_LABELS> hist;
+		hist.setZero();
 
 		for (FeatureIterator it = ds.start; it < ds.end; it++) {
-			hist[it->getLabel()]+=normalised_bin;
+			hist(it->getLabel())++;
 		}
 
-		return hist;
+		return hist.cast<float>()/ds.size;
 	}
 
 
 	static inline float computeEntropy(DataSplit & ds) {
 		Profiler p("compute_entropy");
-		float sum = 0;
+		float sum = 0.0;
 
-		Profiler h("Create hist");
-		std::array<float, NUM_LABELS> & hist = createHistogram(ds);
-		h.stop();
+		Eigen::Matrix<float, 1, NUM_LABELS> hist = createHistogram(ds);
 
 		for (int i = 0; i < NUM_LABELS; i++) {
-			if (hist[i] > 0) {
-				sum += hist[i]*log(hist[i]);
+			if (hist(i) > 0 && hist(i) < 1) {
+				sum += hist(i)*logf(hist(i));
 			}
 		}
+		
 		return -sum;
 	}
 };

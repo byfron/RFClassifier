@@ -5,6 +5,8 @@ add_definitions(-std=c++1y)
 
 find_package( OpenCV REQUIRED )
 find_package( OpenMP REQUIRED)
+find_package( Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 set(CMAKE_CXX_FLAGS "-Ofast -march=native")
 

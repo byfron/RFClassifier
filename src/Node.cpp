@@ -231,7 +231,6 @@ float Node::evaluateCostFunction(const DataSplit ds,
 	float cost = (float(l_split.getSize())/ds.getSize()) * entr_left +
 		(float(r_split.getSize())/ds.getSize()) * entr_right;
 
-
 	//TODO: make sure that when the cost is zero is because the labels are the same in each side
 
 	return cost;
