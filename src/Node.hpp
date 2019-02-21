@@ -67,7 +67,7 @@ public:
 	}
 
 	static inline Eigen::Matrix<float, 1, NUM_LABELS> createHistogram(DataSplit & ds) {
-		Profiler p("create hist");
+//		Profiler p("create hist");
 		static Eigen::Matrix<int, 1, NUM_LABELS> hist;
 		hist.setZero();
 
@@ -80,7 +80,7 @@ public:
 
 
 	static inline float computeEntropy(DataSplit & ds) {
-		Profiler p("compute_entropy");
+//		Profiler p("compute_entropy");
 		float sum = 0.0;
 
 		Eigen::Matrix<float, 1, NUM_LABELS> hist = createHistogram(ds);

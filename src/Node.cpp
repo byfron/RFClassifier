@@ -60,7 +60,7 @@ void Node::train(DataSplit ds) {
 
 	{
 
-	Profiler p("Node train");
+//	Profiler p("Node train");
 
 	assert(ds.getSize() > 0);
 
@@ -104,7 +104,7 @@ void Node::train(DataSplit ds) {
 	// Evaluate all features with each set of parameters
 	for (auto learner : sampled_learners) {
 		{
-		Profiler p("Evaluate feat.");
+//		Profiler p("Evaluate feat.");
 		#pragma omp parallel for
 		for (FeatureIterator it = ds.start; it < ds.end; it++) {
 			it->evaluate(learner);
@@ -112,24 +112,24 @@ void Node::train(DataSplit ds) {
 		}
 
 		{
-		Profiler p("Sorting feat.");
+//		Profiler p("Sorting feat.");
 //		std::sort(ds.start, ds.end);
 		ska_sort(ds.start, ds.end, [](const Feature & feat) { return feat.getValue(); } );
 		}
 
 		FeatureIterator last = ds.end - 1;
 
-		Profiler p("Sample thresholds");
+//		Profiler p("Sample thresholds");
 		//sample thresholds from a uniform distribution between
 		//min and max values of the split
 
 		std::vector<float> learner_thresholds =
 			sampleThresholds(ds.start->getValue(), last->getValue());
-		p.stop();
+//		p.stop();
 
 
 		{
-		Profiler p("Evaluate cost func.");
+//		Profiler p("Evaluate cost func.");
 		for (float threshold : learner_thresholds) {
 
 			float cost = evaluateCostFunction(ds, threshold);
@@ -161,7 +161,7 @@ void Node::train(DataSplit ds) {
 	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
 	{
-	Profiler p("Cost function");
+//	Profiler p("Cost function");
 	float cost = evaluateCostFunction(ds, best_threshold);
 	std::cout << ">> Finished training node in " << elapsed << " seconds. Entropy:" << cost << std::endl;
 	FeatureIterator split_it = computeSplitIterator(ds, best_threshold);
