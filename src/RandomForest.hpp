@@ -83,9 +83,14 @@ public:
 	}
 
 	void save(const std::string & file) {
-		std::ofstream buf(file, std::ios::binary);
-		cereal::BinaryOutputArchive ar(buf);
-		ar(*this);
+		try {
+			std::ofstream buf(file, std::ios::binary);
+			cereal::BinaryOutputArchive ar(buf);
+			ar(*this);
+		}
+		catch (cereal::Exception& e) {
+			std::cout << e.what() << std::endl;
+		}
 	}
 
 	template<class Archive>
