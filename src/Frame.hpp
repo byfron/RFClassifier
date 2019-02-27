@@ -123,10 +123,7 @@ class FramePool {
 public:
 
 	static void initializeColorMap();
-	static void computeFeatures(DataPtr);
-	static bool create(float);
-	static std::vector<FramePtr> image_vector;
-
-private:
-
+	void computeFeatures(DataPtr);
+	bool create(float);
+	std::vector<FramePtr> image_vector;
 };

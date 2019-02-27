@@ -8,8 +8,6 @@ double bytesToGigabytes(long bytes)
 	return bytes * 9.31322574615479e-10;
 }
 
-std::vector<FramePtr> FramePool::image_vector = std::vector<FramePtr>();
-
 namespace FrameUtils{
 
 

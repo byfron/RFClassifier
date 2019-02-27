@@ -63,11 +63,8 @@ void Node::train(DataSplit ds) {
 //	Profiler p("Node train");
 
 	assert(ds.getSize() > 0);
-	static int node_id = 0; //for debugging purposes
 
-	std::cout << ">> Training node " << node_id << " with " << ds.end - ds.start << " features." << std::endl;
-
-	node_id++;
+	std::cout << ">> Training node with " << ds.end - ds.start << " features." << std::endl;
 
 	struct timespec start, finish;
 	clock_gettime(CLOCK_MONOTONIC, &start);

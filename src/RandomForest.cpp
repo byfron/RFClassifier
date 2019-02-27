@@ -106,6 +106,8 @@ void RandomTree::train(DataPtr data) {
 		size_t right_id = _nodes.size();
 		_nodes.push_back(right_node);
 
+		std::cout << "Training tree - current size: " << _nodes.size() << std::endl;
+
 		// Assign child indices to parent
 		_nodes[node_id].left_child = left_id;
 		_nodes[node_id].right_child = right_id;
