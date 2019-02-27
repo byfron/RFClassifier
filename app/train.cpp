@@ -33,6 +33,10 @@ int main(int argc, char **argv) {
 		BackgroundMode::RANDOM_LONGRANGE,
 		BackgroundMode::DEFAULT};
 
+
+	bool exit = false;
+	
+	#pragma omp parallel for
 	for (int i = 0; i < num_trees; i++) {
 
 		std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
@@ -60,9 +64,11 @@ int main(int argc, char **argv) {
 		}
 		else {
 			std::cout << "Can't create Frame Pool. Exiting..." << std::endl;
-			return -1;
+			exit = true;
 		}
 	}
+
+	if (exit) return -1;
 
 	Profiler::print();
 	Profiler::clear();
