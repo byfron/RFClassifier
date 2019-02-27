@@ -1,6 +1,6 @@
 #include "common.hpp"
 
-int Settings::max_tree_depth = 10;
+int Settings::max_tree_depth = 20;
 int Settings::num_pixels_per_image = 2000; //2000 in original paper
 int Settings::num_thresholds_per_feature = 20; //20
 int Settings::num_offsets_per_pixel = 500; //500

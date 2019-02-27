@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 	for (int i = 0; i < num_trees; i++) {
 
 		std::unique_ptr<char[]> buf( new char[ charbuffsize ] );
-		std::snprintf( buf.get(), charbuffsize, "%s_tree_%02d.dat", i, output_file);
+		std::snprintf( buf.get(), charbuffsize, "%s_tree_%02d.dat", output_file, i);
 
 		// Load training
 		if (FramePool::create(limit)) {
